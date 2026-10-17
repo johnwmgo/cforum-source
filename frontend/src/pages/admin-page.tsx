@@ -47,7 +47,7 @@ export function AdminPage() {
 	}, [token]);
 
 	React.useEffect(() => {
-		if (token && !isAdmin) setError('无权限访问管理后台');
+		if (token && !isAdmin) setError('You do not have permission to access the admin panel');
 	}, [token, isAdmin]);
 
 	const refresh = React.useCallback(async () => {
@@ -92,7 +92,7 @@ export function AdminPage() {
 				headers: getSecurityHeaders('POST'),
 				body: JSON.stringify(systemSettings)
 			});
-			alert('设置已保存');
+			alert('Settings saved');
 		} catch (e: any) {
 			setError(String(e?.message || e));
 		} finally {
@@ -142,7 +142,7 @@ export function AdminPage() {
 	}
 
 	async function deleteCategory(id: number) {
-		if (!confirm('确定删除此分类？')) return;
+		if (!confirm('Delete this category?')) return;
 		setLoading(true);
 		setError('');
 		try {
@@ -189,7 +189,7 @@ export function AdminPage() {
 	}
 
 	async function deleteUser(id: number) {
-		if (!confirm('确定删除此用户？')) return;
+		if (!confirm('Delete this user?')) return;
 		setLoading(true);
 		setError('');
 		try {
@@ -203,7 +203,7 @@ export function AdminPage() {
 	}
 
 	async function manualVerify(id: number) {
-		if (!confirm('确认手动验证此用户？')) return;
+		if (!confirm('Manually verify this user?')) return;
 		setLoading(true);
 		setError('');
 		try {
@@ -217,12 +217,12 @@ export function AdminPage() {
 	}
 
 	async function resendEmail(id: number) {
-		if (!confirm('重新发送验证邮件？')) return;
+		if (!confirm('Resend verification email?')) return;
 		setLoading(true);
 		setError('');
 		try {
 			await apiFetch(`/admin/users/${id}/resend`, { method: 'POST', headers: getSecurityHeaders('POST'), body: JSON.stringify({}) });
-			alert('已发送');
+			alert('Sent');
 		} catch (e: any) {
 			setError(String(e?.message || e));
 		} finally {
@@ -235,18 +235,18 @@ export function AdminPage() {
 			<div className="space-y-6">
 				<div className="flex items-center justify-between">
 					<div>
-						<h1 className="text-2xl font-semibold tracking-tight">管理后台</h1>
-						<p className="text-sm text-muted-foreground">站点设置、分类与用户管理</p>
+						<h1 className="text-2xl font-semibold tracking-tight">Admin Panel</h1>
+						<p className="text-sm text-muted-foreground">Site settings, categories and user management</p>
 					</div>
 					<Button variant="outline" onClick={refresh} disabled={loading}>
 						<RefreshCw className="h-4 w-4" />
-						<span className="sr-only">刷新</span>
+						<span className="sr-only">Refresh</span>
 					</Button>
 				</div>
 
 				{user?.role !== 'admin' ? (
 					<Card>
-						<CardContent className="py-6 text-sm text-muted-foreground">无权限访问</CardContent>
+						<CardContent className="py-6 text-sm text-muted-foreground">Access denied</CardContent>
 					</Card>
 				) : (
 					<>
@@ -254,19 +254,19 @@ export function AdminPage() {
 
 						<Card>
 							<CardHeader>
-								<CardTitle>统计</CardTitle>
+								<CardTitle>Statistics</CardTitle>
 							</CardHeader>
 							<CardContent className="grid gap-4 sm:grid-cols-3">
 								<div className="rounded-md border p-4">
-									<div className="text-sm text-muted-foreground">用户</div>
+									<div className="text-sm text-muted-foreground">Users</div>
 									<div className="text-2xl font-semibold">{stats?.users ?? '-'}</div>
 								</div>
 								<div className="rounded-md border p-4">
-									<div className="text-sm text-muted-foreground">帖子</div>
+									<div className="text-sm text-muted-foreground">Posts</div>
 									<div className="text-2xl font-semibold">{stats?.posts ?? '-'}</div>
 								</div>
 								<div className="rounded-md border p-4">
-									<div className="text-sm text-muted-foreground">评论</div>
+									<div className="text-sm text-muted-foreground">Comments</div>
 									<div className="text-2xl font-semibold">{stats?.comments ?? '-'}</div>
 								</div>
 							</CardContent>
@@ -274,7 +274,7 @@ export function AdminPage() {
 
 						<Card>
 							<CardHeader>
-								<CardTitle>站点设置</CardTitle>
+								<CardTitle>Site Settings</CardTitle>
 							</CardHeader>
 							<CardContent className="space-y-4">
 								<label className="flex items-center gap-2 text-sm">
@@ -284,7 +284,7 @@ export function AdminPage() {
 										checked={systemSettings.turnstile_enabled}
 										onChange={(e) => setSystemSettings((s) => ({ ...s, turnstile_enabled: e.target.checked }))}
 									/>
-									启用 Cloudflare Turnstile
+									Enable Cloudflare Turnstile
 								</label>
 								<Separator />
 								<div className="grid gap-3 sm:grid-cols-2">
@@ -295,7 +295,7 @@ export function AdminPage() {
 											checked={systemSettings.notify_on_user_delete}
 											onChange={(e) => setSystemSettings((s) => ({ ...s, notify_on_user_delete: e.target.checked }))}
 										/>
-										删除账号时通知用户
+										Notify user when account is deleted
 									</label>
 									<label className="flex items-center gap-2 text-sm">
 										<input
@@ -304,7 +304,7 @@ export function AdminPage() {
 											checked={systemSettings.notify_on_username_change}
 											onChange={(e) => setSystemSettings((s) => ({ ...s, notify_on_username_change: e.target.checked }))}
 										/>
-										修改用户名时通知用户
+										Notify user when username is changed
 									</label>
 									<label className="flex items-center gap-2 text-sm">
 										<input
@@ -313,7 +313,7 @@ export function AdminPage() {
 											checked={systemSettings.notify_on_avatar_change}
 											onChange={(e) => setSystemSettings((s) => ({ ...s, notify_on_avatar_change: e.target.checked }))}
 										/>
-										修改头像时通知用户
+										Notify user when avatar is changed
 									</label>
 									<label className="flex items-center gap-2 text-sm">
 										<input
@@ -322,27 +322,27 @@ export function AdminPage() {
 											checked={systemSettings.notify_on_manual_verify}
 											onChange={(e) => setSystemSettings((s) => ({ ...s, notify_on_manual_verify: e.target.checked }))}
 										/>
-										手动验证通过时通知用户
+										Notify user when manually verified
 									</label>
 								</div>
 								<Button onClick={saveSettings} disabled={loading}>
-									{loading ? '保存中...' : '保存设置'}
+									{loading ? 'Saving...' : 'Save Settings'}
 								</Button>
 							</CardContent>
 						</Card>
 
 						<Card>
 							<CardHeader>
-								<CardTitle>分类管理</CardTitle>
+								<CardTitle>Category Management</CardTitle>
 							</CardHeader>
 							<CardContent className="space-y-4">
 								<div className="flex flex-wrap items-end gap-2">
 									<div className="space-y-2">
-										<Label htmlFor="cat-name">分类名称</Label>
+										<Label htmlFor="cat-name">Category Name</Label>
 										<Input id="cat-name" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} />
 									</div>
 									<Button onClick={createCategory} disabled={loading}>
-										添加
+										Add
 									</Button>
 								</div>
 								<div className="space-y-2">
@@ -361,7 +361,7 @@ export function AdminPage() {
 												{editingCategoryId === c.id ? (
 													<>
 														<Button variant="outline" size="sm" disabled={loading} onClick={() => updateCategory(c.id)}>
-															保存
+															Save
 														</Button>
 														<Button
 															variant="outline"
@@ -372,7 +372,7 @@ export function AdminPage() {
 																setEditingCategoryName('');
 															}}
 														>
-															取消
+															Cancel
 														</Button>
 													</>
 												) : (
@@ -384,23 +384,23 @@ export function AdminPage() {
 															setEditingCategoryName(c.name);
 														}}
 													>
-														编辑
+														Edit
 													</Button>
 												)}
 												<Button variant="destructive" size="sm" onClick={() => deleteCategory(c.id)}>
-													删除
+													Delete
 												</Button>
 											</div>
 										</div>
 									))}
-									{categories.length === 0 ? <div className="text-sm text-muted-foreground">暂无分类</div> : null}
+									{categories.length === 0 ? <div className="text-sm text-muted-foreground">No categories yet</div> : null}
 								</div>
 							</CardContent>
 						</Card>
 
 						<Card>
 							<CardHeader>
-								<CardTitle>用户管理</CardTitle>
+								<CardTitle>User Management</CardTitle>
 							</CardHeader>
 							<CardContent className="space-y-3">
 								<div className="overflow-x-auto rounded-md border">
@@ -408,11 +408,11 @@ export function AdminPage() {
 										<thead className="bg-muted/30 text-left">
 											<tr>
 												<th className="px-3 py-2">ID</th>
-												<th className="px-3 py-2">用户名</th>
-												<th className="px-3 py-2">邮箱</th>
-												<th className="px-3 py-2">角色</th>
-												<th className="px-3 py-2">已验证</th>
-												<th className="px-3 py-2">操作</th>
+												<th className="px-3 py-2">Username</th>
+												<th className="px-3 py-2">Email</th>
+												<th className="px-3 py-2">Role</th>
+												<th className="px-3 py-2">Verified</th>
+												<th className="px-3 py-2">Actions</th>
 											</tr>
 										</thead>
 										<tbody>
@@ -438,14 +438,14 @@ export function AdminPage() {
 															{u.role === 'admin' ? (
 																<span className="inline-flex items-center gap-1 rounded border border-indigo-500/30 bg-indigo-500/10 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700 dark:text-indigo-300">
 																	<Shield className="h-3 w-3" />
-																	<span className="sr-only">管理员</span>
+																	<span className="sr-only">Admin</span>
 																</span>
 															) : null}
 														</span>
 													</td>
 													<td className="px-3 py-2">{u.email}</td>
 													<td className="px-3 py-2">{u.role}</td>
-													<td className="px-3 py-2">{u.verified ? '是' : '否'}</td>
+													<td className="px-3 py-2">{u.verified ? 'Yes' : 'No'}</td>
 													<td className="px-3 py-2">
 														<div className="flex flex-wrap gap-2">
 															<Button
@@ -454,7 +454,7 @@ export function AdminPage() {
 																className="border-sky-500 text-sky-700 hover:bg-sky-50 hover:text-sky-800 dark:text-sky-400 dark:hover:bg-sky-950/40"
 																onClick={() => openEdit(u)}
 															>
-																编辑
+																Edit
 															</Button>
 															{!u.verified ? (
 																<>
@@ -464,7 +464,7 @@ export function AdminPage() {
 																		className="border-emerald-500 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-emerald-400 dark:hover:bg-emerald-950/40"
 																		onClick={() => manualVerify(u.id)}
 																	>
-																		验证
+																		Verify
 																	</Button>
 																	<Button
 																		variant="outline"
@@ -472,13 +472,13 @@ export function AdminPage() {
 																		className="border-amber-500 text-amber-800 hover:bg-amber-50 hover:text-amber-900 dark:text-amber-400 dark:hover:bg-amber-950/40"
 																		onClick={() => resendEmail(u.id)}
 																	>
-																		重发
+																		Resend
 																	</Button>
 																</>
 															) : null}
 															{user?.id !== u.id ? (
 																<Button variant="destructive" size="sm" onClick={() => deleteUser(u.id)}>
-																	删除
+																	Delete
 																</Button>
 															) : null}
 														</div>
@@ -494,33 +494,33 @@ export function AdminPage() {
 						<Dialog open={editOpen} onOpenChange={setEditOpen}>
 							<DialogContent>
 								<DialogHeader>
-									<DialogTitle>编辑用户</DialogTitle>
-									<DialogDescription>修改用户名/邮箱/头像/密码</DialogDescription>
+									<DialogTitle>Edit User</DialogTitle>
+									<DialogDescription>Change username / email / avatar / password</DialogDescription>
 								</DialogHeader>
 								<div className="grid gap-4 py-4">
 									<div className="grid gap-2">
-										<Label htmlFor="edit-username">用户名</Label>
+										<Label htmlFor="edit-username">Username</Label>
 										<Input id="edit-username" value={editUsername} onChange={(e) => setEditUsername(e.target.value)} maxLength={20} />
 									</div>
 									<div className="grid gap-2">
-										<Label htmlFor="edit-email">邮箱</Label>
+										<Label htmlFor="edit-email">Email</Label>
 										<Input id="edit-email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)} type="email" />
 									</div>
 									<div className="grid gap-2">
-										<Label htmlFor="edit-avatar">头像 URL</Label>
+										<Label htmlFor="edit-avatar">Avatar URL</Label>
 										<Input id="edit-avatar" value={editAvatarUrl} onChange={(e) => setEditAvatarUrl(e.target.value)} />
 									</div>
 									<div className="grid gap-2">
-										<Label htmlFor="edit-password">新密码 (留空不变)</Label>
+										<Label htmlFor="edit-password">New password (leave blank to keep current)</Label>
 										<Input id="edit-password" value={editPassword} onChange={(e) => setEditPassword(e.target.value)} />
 									</div>
 								</div>
 								<DialogFooter>
 									<Button variant="outline" onClick={() => setEditOpen(false)}>
-										取消
+										Cancel
 									</Button>
 									<Button onClick={saveEdit} disabled={loading}>
-										{loading ? '保存中...' : '保存'}
+										{loading ? 'Saving...' : 'Save'}
 									</Button>
 								</DialogFooter>
 							</DialogContent>

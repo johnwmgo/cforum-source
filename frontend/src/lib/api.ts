@@ -61,12 +61,12 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
 	const res = await fetch(`${API_BASE}${path}`, init);
 	if (res.status === 401) {
 		logout();
-		throw new Error('登录已过期，请重新登录');
+		throw new Error('Session expired, please log in again');
 	}
 	const text = await res.text();
 	const data = text ? (JSON.parse(text) as any) : null;
 	if (!res.ok) {
-		throw new Error(data?.error || `请求失败 (${res.status})`);
+		throw new Error(data?.error || `Request failed (${res.status})`);
 	}
 	return data as T;
 }

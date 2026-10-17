@@ -1,7 +1,7 @@
 
 import { connect } from 'cloudflare:sockets';
 
-const DEFAULT_FROM_NAME = '论坛管理员';
+const DEFAULT_FROM_NAME = 'Forum Admin';
 
 // Timeout helper
 function withTimeout<T>(promise: Promise<T>, ms: number, errorMsg: string): Promise<T> {
@@ -223,7 +223,7 @@ async function sendViaSMTP(to: string, subject: string, htmlContent: string, env
         }
         
         if (!authSuccess) {
-            throw new Error(`SMTP 认证失败。请检查：\n1. SMTP_USER 和 SMTP_PASS 是否正确\n2. 是否使用了应用专用密码（QQ企业邮箱、Gmail等需要）\n3. 邮箱服务器是否限制了登录（如频繁失败导致临时锁定）`);
+            throw new Error(`SMTP authentication failed. Please check:\n1. SMTP_USER and SMTP_PASS are correct\n2. You are using an app-specific password (required by QQ Enterprise Mail, Gmail, etc.)\n3. The mail server is not restricting logins (e.g. a temporary lock after repeated failures)`);
         }
         
         await sendCommand(writer, reader, `MAIL FROM: <${SMTP_CONFIG.from}>`, 250);
@@ -282,7 +282,7 @@ ${htmlContent}
 // Resend API Send Function
 async function sendViaResend(env: any, to: string, subject: string, htmlContent: string) {
     if (!env.RESEND_KEY) {
-        throw new Error('环境变量缺少 RESEND_KEY');
+        throw new Error('Missing RESEND_KEY environment variable');
     }
     
     console.log('[Resend] Sending email via API...');
@@ -303,7 +303,7 @@ async function sendViaResend(env: any, to: string, subject: string, htmlContent:
     if (!res.ok) {
         const err = await res.text();
         console.error('[Resend] API Error:', err);
-        throw new Error(`Resend API 错误：${err}`);
+        throw new Error(`Resend API error: ${err}`);
     } else {
         console.log('[Resend] Email sent successfully');
     }
@@ -316,7 +316,7 @@ export async function sendEmail(to: string, subject: string, htmlContent: string
     // 1. Check MX Records first
     try {
         if (!(await checkMX(to))) {
-            throw new Error(`邮箱域名无效（未找到 MX 记录：${to}）`);
+            throw new Error(`Invalid email domain (no MX record found: ${to})`);
         }
     } catch (e) {
         console.error('[Email] MX check failed:', e);

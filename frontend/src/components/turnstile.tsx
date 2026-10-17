@@ -18,7 +18,7 @@ async function ensureTurnstileScriptLoaded(): Promise<void> {
 		const existing = document.querySelector<HTMLScriptElement>('script[data-turnstile="1"]');
 		if (existing) {
 			existing.addEventListener('load', () => resolve());
-			existing.addEventListener('error', () => reject(new Error('Turnstile 脚本加载失败')));
+			existing.addEventListener('error', () => reject(new Error('Failed to load Turnstile script')));
 			return;
 		}
 
@@ -28,7 +28,7 @@ async function ensureTurnstileScriptLoaded(): Promise<void> {
 		script.defer = true;
 		script.dataset.turnstile = '1';
 		script.addEventListener('load', () => resolve());
-		script.addEventListener('error', () => reject(new Error('Turnstile 脚本加载失败')));
+		script.addEventListener('error', () => reject(new Error('Failed to load Turnstile script')));
 		document.head.appendChild(script);
 	});
 }

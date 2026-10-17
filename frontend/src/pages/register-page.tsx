@@ -28,7 +28,7 @@ export function RegisterPage() {
 		setError('');
 		setSuccess('');
 		if (turnstileActive && !turnstileToken) {
-			setError('请完成验证码验证');
+			setError('Please complete the CAPTCHA');
 			return;
 		}
 
@@ -48,9 +48,9 @@ export function RegisterPage() {
 			if (!res.ok) {
 				setTurnstileToken('');
 				setTurnstileResetKey((v) => v + 1);
-				throw new Error(data?.error || '注册失败');
+				throw new Error(data?.error || 'Registration failed');
 			}
-			setSuccess('注册成功！请前往邮箱完成验证后再登录。');
+			setSuccess('Registration successful! Please check your email to verify your account before logging in.');
 			setEmail('');
 			setUsername('');
 			setPassword('');
@@ -68,7 +68,7 @@ export function RegisterPage() {
 			<main className="mx-auto flex max-w-5xl justify-center px-4 py-10">
 				<Card className="w-full max-w-md">
 					<CardHeader>
-						<CardTitle>注册</CardTitle>
+						<CardTitle>Register</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<form className="space-y-4" onSubmit={handleSubmit}>
@@ -76,7 +76,7 @@ export function RegisterPage() {
 							{success ? <div className="rounded-md border bg-muted/40 p-3 text-sm">{success}</div> : null}
 
 							<div className="space-y-2">
-								<Label htmlFor="register-username">用户名 (最多 20 字符)</Label>
+								<Label htmlFor="register-username">Username (max 20 characters)</Label>
 								<Input
 									id="register-username"
 									name="username"
@@ -89,7 +89,7 @@ export function RegisterPage() {
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="register-email">邮箱</Label>
+								<Label htmlFor="register-email">Email</Label>
 								<Input
 									id="register-email"
 									name="email"
@@ -102,7 +102,7 @@ export function RegisterPage() {
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="register-password">密码 (8-16 字符)</Label>
+								<Label htmlFor="register-password">Password (8-16 characters)</Label>
 								<Input
 									id="register-password"
 									name="password"
@@ -117,12 +117,12 @@ export function RegisterPage() {
 <TurnstileWidget enabled={turnstileActive} siteKey={siteKey} onToken={setTurnstileToken} resetKey={turnstileResetKey} />
 
 							<Button className="w-full" type="submit" disabled={loading}>
-								{loading ? '处理中...' : '注册'}
+								{loading ? 'Processing...' : 'Register'}
 							</Button>
 
 							<div className="text-sm">
 								<a className="text-muted-foreground hover:underline" href="/login">
-									已有账号？登录
+									Already have an account? Log in
 								</a>
 							</div>
 						</form>

@@ -33,12 +33,12 @@ export function SiteHeader({
 					className="inline-flex items-center justify-center rounded-md border border-transparent p-2 text-foreground hover:bg-muted/40"
 				>
 					<Home className="h-5 w-5" />
-					<span className="sr-only">主页</span>
+					<span className="sr-only">Home</span>
 				</a>
 				<div className="flex items-center gap-2">
 					<Button type="button" variant="ghost" size="sm" onClick={toggleTheme}>
 						{theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-						<span className="sr-only">切换主题</span>
+						<span className="sr-only">Toggle theme</span>
 					</Button>
 					{user ? (
 						<>
@@ -57,12 +57,12 @@ export function SiteHeader({
 									</span>
 								)}
 								<span>
-									欢迎，<span className="text-foreground">{user.username}</span>
+									Welcome, <span className="text-foreground">{user.username}</span>
 								</span>
 								{user.role === 'admin' ? (
 									<span className="inline-flex items-center gap-1 rounded border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-medium text-indigo-700 dark:text-indigo-300">
 										<Shield className="h-3 w-3" />
-										<span className="sr-only">管理员</span>
+										<span className="sr-only">Admin</span>
 									</span>
 								) : null}
 							</span>
@@ -70,14 +70,14 @@ export function SiteHeader({
 								<Button asChild variant="ghost" size="sm">
 									<a href="/admin">
 										<Shield className="h-4 w-4" />
-										<span className="sr-only">管理后台</span>
+										<span className="sr-only">Admin Panel</span>
 									</a>
 								</Button>
 							) : null}
 							<Button asChild variant="ghost" size="sm">
 								<a href="/settings">
 									<Settings className="h-4 w-4" />
-									<span className="sr-only">设置</span>
+									<span className="sr-only">Settings</span>
 								</a>
 							</Button>
 							<Separator orientation="vertical" className="h-6" />
@@ -91,7 +91,7 @@ export function SiteHeader({
 								}}
 							>
 								<LogOut className="h-4 w-4" />
-								<span className="sr-only">退出</span>
+								<span className="sr-only">Log out</span>
 							</Button>
 						</>
 					) : (
@@ -99,13 +99,13 @@ export function SiteHeader({
 							<Button asChild variant="ghost" size="sm">
 								<a href="/login">
 									<LogIn className="h-4 w-4" />
-									<span className="sr-only">登录</span>
+									<span className="sr-only">Log in</span>
 								</a>
 							</Button>
 							<Button asChild size="sm">
 								<a href="/register">
 									<UserPlus className="h-4 w-4" />
-									<span className="sr-only">注册</span>
+									<span className="sr-only">Register</span>
 								</a>
 							</Button>
 						</>

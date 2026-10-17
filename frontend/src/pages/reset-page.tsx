@@ -29,8 +29,8 @@ export function ResetPage() {
 		e.preventDefault();
 		setError('');
 		setSuccess('');
-		if (!token) return setError('缺少重置 token');
-		if (turnstileActive && !turnstileToken) return setError('请完成验证码验证');
+		if (!token) return setError('Missing reset token');
+		if (turnstileActive && !turnstileToken) return setError('Please complete the CAPTCHA');
 		setLoading(true);
 		try {
 			const res = await fetch('/api/auth/reset-password', {
@@ -47,9 +47,9 @@ export function ResetPage() {
 			if (!res.ok) {
 				setTurnstileToken('');
 				setTurnstileResetKey((v) => v + 1);
-				throw new Error(data?.error || '重置失败');
+				throw new Error(data?.error || 'Reset failed');
 			}
-			setSuccess('密码重置成功，请重新登录。');
+			setSuccess('Password reset successful. Please log in again.');
 			setPassword('');
 			setTotpCode('');
 			setTurnstileToken('');
@@ -66,14 +66,14 @@ export function ResetPage() {
 			<main className="mx-auto flex max-w-5xl justify-center px-4 py-10">
 				<Card className="w-full max-w-md">
 					<CardHeader>
-						<CardTitle>重置密码</CardTitle>
+						<CardTitle>Reset Password</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<form className="space-y-4" onSubmit={handleSubmit}>
 							{error ? <div className="rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive">{error}</div> : null}
 							{success ? <div className="rounded-md border bg-muted/40 p-3 text-sm">{success}</div> : null}
 							<div className="space-y-2">
-								<Label htmlFor="reset-password">新密码</Label>
+								<Label htmlFor="reset-password">New Password</Label>
 								<Input
 									id="reset-password"
 									type="password"
@@ -84,7 +84,7 @@ export function ResetPage() {
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="reset-totp">双重验证码 (若开启)</Label>
+								<Label htmlFor="reset-totp">2FA code (if enabled)</Label>
 								<Input
 									id="reset-totp"
 									type="text"
@@ -97,11 +97,11 @@ export function ResetPage() {
 							</div>
 							<TurnstileWidget enabled={turnstileActive} siteKey={siteKey} onToken={setTurnstileToken} resetKey={turnstileResetKey} />
 							<Button className="w-full" type="submit" disabled={loading}>
-								{loading ? '处理中...' : '重置密码'}
+								{loading ? 'Processing...' : 'Reset Password'}
 							</Button>
 							<div className="text-sm">
 								<a className="text-muted-foreground hover:underline" href="/login">
-									返回登录
+									Back to Login
 								</a>
 							</div>
 						</form>

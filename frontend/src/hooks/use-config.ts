@@ -11,7 +11,7 @@ export function useConfig() {
 		(async () => {
 			try {
 				const res = await fetch('/api/config');
-				if (!res.ok) throw new Error('无法加载站点配置');
+				if (!res.ok) throw new Error('Failed to load site configuration');
 				const data = (await res.json()) as ForumConfig;
 				if (!cancelled) setConfig(data);
 			} catch (e: any) {

@@ -82,7 +82,7 @@ export function PostPage() {
 
 	const refresh = React.useCallback(async () => {
 		if (!postId) {
-			setError('帖子不存在');
+			setError('Post not found');
 			setLoading(false);
 			return;
 		}
@@ -193,10 +193,10 @@ export function PostPage() {
 			return;
 		}
 		setCommentError('');
-		const err = validateText(newComment, '评论');
+		const err = validateText(newComment, 'Comment');
 		if (err) return setCommentError(err);
-		if (newComment.length > 3000) return setCommentError('评论过长 (最多 3000 字符)');
-		if (turnstileActive && !turnstileToken) return setCommentError('请完成验证码验证');
+		if (newComment.length > 3000) return setCommentError('Comment is too long (max 3000 characters)');
+		if (turnstileActive && !turnstileToken) return setCommentError('Please complete the CAPTCHA');
 
 		setCommentLoading(true);
 		try {
@@ -224,7 +224,7 @@ export function PostPage() {
 	}
 
 	async function deleteComment(id: number) {
-		if (!confirm('确定要删除此评论吗？此操作无法撤销。')) return;
+		if (!confirm('Are you sure you want to delete this comment? This cannot be undone.')) return;
 		try {
 			await apiFetch(`/comments/${id}`, {
 				method: 'DELETE',
@@ -238,7 +238,7 @@ export function PostPage() {
 
 	async function deletePost() {
 		if (!post) return;
-		if (!confirm('确定要删除这个帖子吗？此操作无法撤销。')) return;
+		if (!confirm('Are you sure you want to delete this post? This cannot be undone.')) return;
 		try {
 			const isAdmin = user?.role === 'admin';
 			const path = isAdmin ? `/admin/posts/${post.id}` : `/posts/${post.id}`;
@@ -289,12 +289,12 @@ export function PostPage() {
 	async function saveEdit() {
 		if (!post) return;
 		setEditError('');
-		const titleErr = validateText(editTitle, '标题');
+		const titleErr = validateText(editTitle, 'Title');
 		if (titleErr) return setEditError(titleErr);
-		const contentErr = validateText(editContent, '内容');
+		const contentErr = validateText(editContent, 'Content');
 		if (contentErr) return setEditError(contentErr);
-		if (editTitle.length > 30) return setEditError('标题过长 (最多 30 字符)');
-		if (editContent.length > 3000) return setEditError('内容过长 (最多 3000 字符)');
+		if (editTitle.length > 30) return setEditError('Title is too long (max 30 characters)');
+		if (editContent.length > 3000) return setEditError('Content is too long (max 3000 characters)');
 
 		setEditLoading(true);
 		try {
@@ -319,7 +319,7 @@ export function PostPage() {
 					<Button asChild variant="ghost" size="sm">
 						<a href="/">
 							<ArrowLeft className="h-4 w-4" />
-							<span className="sr-only">返回首页</span>
+							<span className="sr-only">Back to home</span>
 						</a>
 					</Button>
 				</div>
@@ -328,11 +328,11 @@ export function PostPage() {
 
 				{loading ? (
 					<Card>
-						<CardContent className="py-6 text-sm text-muted-foreground">加载中...</CardContent>
+						<CardContent className="py-6 text-sm text-muted-foreground">Loading...</CardContent>
 					</Card>
 				) : !post ? (
 					<Card>
-						<CardContent className="py-6 text-sm text-muted-foreground">帖子不存在</CardContent>
+						<CardContent className="py-6 text-sm text-muted-foreground">Post not found</CardContent>
 					</Card>
 				) : (
 					<>
@@ -359,7 +359,7 @@ export function PostPage() {
 											{post.author_role === 'admin' ? (
 												<span className="inline-flex items-center gap-1 rounded border border-indigo-500/30 bg-indigo-500/10 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700 dark:text-indigo-300">
 													<Shield className="h-3 w-3" />
-													<span className="sr-only">管理员</span>
+													<span className="sr-only">Admin</span>
 												</span>
 											) : null}
 										</span>
@@ -373,19 +373,19 @@ export function PostPage() {
 									<Button variant={post.liked ? 'secondary' : 'outline'} size="sm" onClick={toggleLike} disabled={!user}>
 										<Heart className="h-4 w-4 text-rose-600" fill={post.liked ? 'currentColor' : 'none'} />
 										<span className="tabular-nums">{post.like_count || 0}</span>
-										<span className="sr-only">{post.liked ? '取消点赞' : '点赞'}</span>
+										<span className="sr-only">{post.liked ? 'Unlike' : 'Like'}</span>
 									</Button>
 									<span className="inline-flex items-center gap-1 rounded-md border bg-muted/20 px-2 py-1 text-xs text-muted-foreground">
 										<Eye className="h-4 w-4 text-emerald-600" />
 										<span className="tabular-nums">{post.view_count || 0}</span>
-										<span className="sr-only">观看数</span>
+										<span className="sr-only">Views</span>
 									</span>
 
 									{user && (user.role === 'admin' || user.id === post.author_id) ? (
 										<>
 											<Button variant="outline" size="sm" onClick={() => setIsEditing((v) => !v)}>
 												{isEditing ? <X className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-												<span className="sr-only">{isEditing ? '取消编辑' : '编辑'}</span>
+												<span className="sr-only">{isEditing ? 'Cancel editing' : 'Edit'}</span>
 											</Button>
 										</>
 									) : null}
@@ -401,7 +401,7 @@ export function PostPage() {
 												aria-expanded={adminMenuOpen}
 											>
 												<MoreVertical className="h-4 w-4" />
-												<span className="sr-only">更多</span>
+												<span className="sr-only">More</span>
 											</Button>
 											{adminMenuOpen ? (
 												<div className="absolute right-0 top-full z-50 mt-2 w-44 rounded-md border bg-background p-1 shadow-md">
@@ -412,7 +412,7 @@ export function PostPage() {
 															onClick={togglePin}
 														>
 															<Pin className="h-4 w-4" />
-															{post.is_pinned ? '取消置顶' : '置顶'}
+															{post.is_pinned ? 'Unpin' : 'Pin'}
 														</button>
 													) : null}
 													<button
@@ -424,18 +424,18 @@ export function PostPage() {
 														}}
 													>
 														<Trash2 className="h-4 w-4" />
-														删除
+														Delete
 													</button>
 													{user.role === 'admin' ? (
 														<>
 															<div className="my-1 h-px bg-border" />
-															<div className="px-2 py-1 text-xs font-medium text-muted-foreground">移动到分类</div>
+															<div className="px-2 py-1 text-xs font-medium text-muted-foreground">Move to category</div>
 															<button
 																type="button"
 																className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm hover:bg-muted"
 																onClick={() => void adminMovePostCategory(null)}
 															>
-																未分类
+																Uncategorized
 															</button>
 															{allCategories.map((c) => (
 																<button
@@ -465,14 +465,14 @@ export function PostPage() {
 											<div className="flex items-center justify-end">
 												<Button type="button" variant="outline" size="sm" onClick={() => setEditPreviewOpen((v) => !v)}>
 													{editPreviewOpen ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-													<span className="sr-only">{editPreviewOpen ? '关闭预览' : '打开预览'}</span>
+													<span className="sr-only">{editPreviewOpen ? 'Close preview' : 'Open preview'}</span>
 												</Button>
 											</div>
 											<Textarea ref={editContentRef} value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={10} />
 										</div>
                         {/* upload image when editing */}
                         <div className="space-y-2">
-                            <label className="block text-sm font-medium text-muted-foreground">上传图片</label>
+                            <label className="block text-sm font-medium text-muted-foreground">Upload Image</label>
                             <input
                                 type="file"
                                 accept="image/*"
@@ -482,7 +482,7 @@ export function PostPage() {
                                     if (!file) return;
                                     setEditError('');
                                     if (file.size > 2 * 1024 * 1024) {
-                                        setEditError('文件过大 (最大 2MB)');
+                                        setEditError('File is too large (max 2MB)');
                                         return;
                                     }
                                     setUploadLoading(true);
@@ -496,7 +496,7 @@ export function PostPage() {
                                             body: formData,
                                         });
                                         const data = await res.json();
-                                        if (!res.ok) throw new Error(data?.error || '上传失败');
+                                        if (!res.ok) throw new Error(data?.error || 'Upload failed');
                                         // insert link at cursor and show preview
                                         insertIntoEditContent(`
 
@@ -512,11 +512,11 @@ export function PostPage() {
                                 }}
                             />
                             {uploadError ? <div className="text-sm text-destructive">{uploadError}</div> : null}
-                            {uploadLoading ? <div className="text-sm text-muted-foreground">上传中…</div> : null}
+                            {uploadLoading ? <div className="text-sm text-muted-foreground">Uploading…</div> : null}
                         </div>
 										{editPreviewOpen ? (
 <div className="rounded-md border bg-muted/20 p-3">
-												<div className="mb-2 text-xs font-medium text-muted-foreground">预览</div>
+												<div className="mb-2 text-xs font-medium text-muted-foreground">Preview</div>
 												<div
 													ref={editPreviewRef}
 													className="prose max-w-none break-words [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1"
@@ -525,7 +525,7 @@ export function PostPage() {
 											</div>
 										) : null}
 										<Button onClick={saveEdit} disabled={editLoading}>
-											{editLoading ? '保存中...' : '保存'}
+											{editLoading ? 'Saving...' : 'Save'}
 										</Button>
 									</div>
 								) : (
@@ -540,11 +540,11 @@ export function PostPage() {
 
 						<Card>
 							<CardHeader>
-								<CardTitle>评论</CardTitle>
+								<CardTitle>Comments</CardTitle>
 							</CardHeader>
 							<CardContent className="space-y-4">
 								{comments.length === 0 ? (
-									<div className="text-sm text-muted-foreground">暂无评论</div>
+									<div className="text-sm text-muted-foreground">No comments yet</div>
 								) : (
 									<div className="space-y-3">
 										{organizeComments(comments).map((c) => (
@@ -569,7 +569,7 @@ export function PostPage() {
 															{c.role === 'admin' ? (
 																<span className="inline-flex items-center gap-1 rounded border border-indigo-500/30 bg-indigo-500/10 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700 dark:text-indigo-300">
 																	<Shield className="h-3 w-3" />
-																	<span className="sr-only">管理员</span>
+																	<span className="sr-only">Admin</span>
 																</span>
 															) : null}
 															<span className="text-muted-foreground">{formatDate(c.created_at)}</span>
@@ -578,12 +578,12 @@ export function PostPage() {
 													<div className="flex items-center gap-2">
 														<Button variant="ghost" size="sm" onClick={() => setReplyTo(c)}>
 															<Reply className="h-4 w-4" />
-															<span className="sr-only">回复</span>
+															<span className="sr-only">Reply</span>
 														</Button>
 														{user && (user.role === 'admin' || user.id === c.author_id) ? (
 															<Button variant="ghost" size="sm" onClick={() => deleteComment(c.id)}>
 																<Trash2 className="h-4 w-4" />
-																<span className="sr-only">删除</span>
+																<span className="sr-only">Delete</span>
 															</Button>
 														) : null}
 													</div>
@@ -613,7 +613,7 @@ export function PostPage() {
 																			{r.role === 'admin' ? (
 																				<span className="inline-flex items-center gap-1 rounded border border-indigo-500/30 bg-indigo-500/10 px-1 py-0.5 text-[10px] font-medium text-indigo-700 dark:text-indigo-300">
 																					<Shield className="h-3 w-3" />
-																					<span className="sr-only">管理员</span>
+																					<span className="sr-only">Admin</span>
 																				</span>
 																			) : null}
 																			<span className="text-muted-foreground">{formatDate(r.created_at)}</span>
@@ -622,7 +622,7 @@ export function PostPage() {
 																	{user && (user.role === 'admin' || user.id === r.author_id) ? (
 																		<Button variant="ghost" size="sm" onClick={() => deleteComment(r.id)}>
 																			<Trash2 className="h-4 w-4" />
-																			<span className="sr-only">删除</span>
+																			<span className="sr-only">Delete</span>
 																		</Button>
 																	) : null}
 																</div>
@@ -639,25 +639,25 @@ export function PostPage() {
 								{replyTo ? (
 									<div className="flex items-center justify-between rounded-md border bg-muted/30 p-2 text-sm">
 										<span>
-											回复 <span className="font-medium">{replyTo.username}</span>
+											Replying to <span className="font-medium">{replyTo.username}</span>
 										</span>
 										<Button variant="ghost" size="sm" onClick={() => setReplyTo(null)}>
-											取消
+											Cancel
 										</Button>
 									</div>
 								) : null}
 
 								<form className="space-y-3" onSubmit={submitComment}>
 									{commentError ? <div className="rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive">{commentError}</div> : null}
-									<Textarea value={newComment} onChange={(e) => setNewComment(e.target.value)} rows={4} placeholder="写下你的评论..." />
+									<Textarea value={newComment} onChange={(e) => setNewComment(e.target.value)} rows={4} placeholder="Write your comment..." />
 						<TurnstileWidget enabled={turnstileActive} siteKey={siteKey} onToken={setTurnstileToken} resetKey={turnstileResetKey} />
 									<div className="flex items-center gap-2">
 										<Button type="submit" disabled={commentLoading}>
-											{commentLoading ? '发布中...' : '发布评论'}
+											{commentLoading ? 'Posting...' : 'Post Comment'}
 										</Button>
 										{!user ? (
 											<Button type="button" variant="outline" onClick={() => (window.location.href = '/login')}>
-												登录后评论
+												Log in to comment
 											</Button>
 										) : null}
 									</div>

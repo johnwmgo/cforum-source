@@ -150,7 +150,7 @@ jobs:
 
       - name: Success
         run: |
-          echo "✅ 部署完成！"
-          echo "📍 Pages: https://cforum.pages.dev (静态资源 - 免费无限)"
-          echo "📍 Worker: https://cforum.workers.dev (API - 按需计费)"
-          echo "💡 使用 GitHub Secrets 配置自定义域名"
+          echo "✅ Deployment complete!"
+          echo "📍 Pages: https://cforum.pages.dev (static assets - free, unlimited)"
+          echo "📍 Worker: https://cforum.workers.dev (API - pay per use)"
+          echo "💡 Use GitHub Secrets to configure a custom domain"

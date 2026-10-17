@@ -1,143 +1,143 @@
 # CForum
 
-一个基于 Cloudflare Workers + Pages + D1 + R2 的论坛，支持帖子、评论、图片上传、2FA 等。
+A forum built on Cloudflare Workers + Pages + D1 + R2, with support for posts, comments, image uploads, 2FA and more.
 
-**💡 性能优化**：采用 Pages + Worker 混合部署，静态资源免费无限请求，节省 ~90% Worker 成本！
+**💡 Performance optimization**: Uses a hybrid Pages + Worker deployment — static assets get free, unlimited requests, saving ~90% of Worker costs!
 
 ---
 
-## 🏗️ 架构设计
+## 🏗️ Architecture
 
-### 单域名 + 智能网关方案
+### Single domain + smart gateway
 
 ```
-用户访问：forum.adysec.com
+User visits: forum.adysec.com
          ↓
-    Cloudflare Pages（Edge 网络）
+    Cloudflare Pages (Edge network)
          ↓
-  ┌─ Pages Functions 判断路由
+  ┌─ Pages Functions decide the route
   │
   ├─ /api/* ?
-  │  ├─ YES → 转发给 Worker（处理业务逻辑 + 数据库）
-  │  │         返回 JSON
+  │  ├─ YES → Forward to Worker (business logic + database)
+  │  │         Returns JSON
   │  │
-  │  └─ NO  → 返回静态文件或 index.html
-  │           前端 React Router 接管
+  │  └─ NO  → Return static file or index.html
+  │           Frontend React Router takes over
   │
-  └─ 用户看到页面
+  └─ User sees the page
 ```
 
-## ✨ 功能特性
+## ✨ Features
 
-- ✅ **帖子管理** - 发布、编辑、删除、置顶、分类
-- ✅ **评论系统** - 多级评论、支持回复
-- ✅ **用户认证** - 注册、登录、邮件验证、2FA
-- ✅ **图片上传** - 图片直接上传到 R2，支持 Markdown 预览
-- ✅ **用户资料** - 头像上传、个人资料、邮件通知设置
-- ✅ **管理后台** - 用户管理、分类管理、设置管理
-- ✅ **访问统计** - 浏览量统计（post view count）
-- ✅ **点赞系统** - 灵活的点赞/取消点赞
-- ✅ **验证码** - 集成 Cloudflare Turnstile
-- ✅ **邮件服务** - SMTP 配置、验证邮件、重置密码
+- ✅ **Post management** - Create, edit, delete, pin, categorize
+- ✅ **Comment system** - Nested comments with replies
+- ✅ **User authentication** - Registration, login, email verification, 2FA
+- ✅ **Image uploads** - Images upload directly to R2, with Markdown preview
+- ✅ **User profiles** - Avatar upload, profile info, email notification settings
+- ✅ **Admin panel** - User management, category management, settings management
+- ✅ **View statistics** - Post view counts
+- ✅ **Like system** - Flexible like/unlike
+- ✅ **CAPTCHA** - Cloudflare Turnstile integration
+- ✅ **Email service** - SMTP configuration, verification emails, password reset
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-### 方法 1：Fork + 一键部署（适合一次部署的普通用户）
+### Method 1: Fork + one-click deploy (for users deploying once)
 
 [![Deploy to Cloudflare](https://camo.githubusercontent.com/aa3de9a0130879a84691a2286f5302105d5f3554c5d0af4e3f2f24174eeeea25/68747470733a2f2f6465706c6f792e776f726b6572732e636c6f7564666c6172652e636f6d2f627574746f6e)](https://deploy.workers.cloudflare.com/?url=https://github.com/adysec/cforum)
 
-> 在 Cloudflare 仪表盘中为 Worker 添加一个至少 32 字符的 `JWT_SECRET` 密钥。
-> **前端提醒**：如果 Worker 运行时未检测到有效 `JWT_SECRET`，页面顶部将显示黄色通知并建议一个随机密钥，你可以复制并粘贴到 Secrets 中。
+> In the Cloudflare dashboard, add a `JWT_SECRET` secret of at least 32 characters to the Worker.
+> **Frontend notice**: If the Worker does not detect a valid `JWT_SECRET` at runtime, a yellow banner appears at the top of the page suggesting a random key, which you can copy and paste into Secrets.
 
-### 方法 2：GitHub Actions 自动部署（推荐）
+### Method 2: Automatic deployment with GitHub Actions (recommended)
 
-项目已内置 `.github/workflows/deploy.yml`，每次推送到 `main` 分支或手动触发时自动构建并部署到 Cloudflare。
+The project includes `.github/workflows/deploy.yml`, which automatically builds and deploys to Cloudflare on every push to the `main` branch or when triggered manually.
 
-#### 第一步：获取 Cloudflare API Token
+#### Step 1: Get a Cloudflare API Token
 
-1. 登录 [Cloudflare Dashboard](https://dash.cloudflare.com/)
-2. 进入 **My Profile > API Tokens**
-3. 点击 **Create Token**
-4. 配置自定义权限：
+1. Log in to the [Cloudflare Dashboard](https://dash.cloudflare.com/)
+2. Go to **My Profile > API Tokens**
+3. Click **Create Token**
+4. Configure custom permissions:
    - **Account > Workers Scripts** - Edit
    - **Account > D1** - Edit
    - **Account > R2** - Edit
    - **Account > Pages** - Edit
-5. 选择你的账户，点击 **Continue to summary**
-6. 创建后复制 Token（只会显示一次）
-<img width="1778" height="506" alt="图片" src="https://github.com/user-attachments/assets/0f7f179b-d2a9-4f3b-8981-f736d294898a" />
+5. Select your account and click **Continue to summary**
+6. After creating it, copy the token (it is only shown once)
+<img width="1778" height="506" alt="Screenshot" src="https://github.com/user-attachments/assets/0f7f179b-d2a9-4f3b-8981-f736d294898a" />
 
-#### 第二步：获取 Account ID
+#### Step 2: Get your Account ID
 
-1. 在 Cloudflare Dashboard 首页，选择任意域名
-2. 右侧栏可以看到 **Account ID**，复制它
+1. On the Cloudflare Dashboard home page, select any domain
+2. The **Account ID** is shown in the right sidebar — copy it
 
-#### 第三步：配置 GitHub Secrets
+#### Step 3: Configure GitHub Secrets
 
-在你的 GitHub 仓库中：
-1. 进入 **Settings > Secrets and variables > Actions**
-2. 点击 **New repository secret**，添加以下密钥：
+In your GitHub repository:
+1. Go to **Settings > Secrets and variables > Actions**
+2. Click **New repository secret** and add the following secrets:
 
-| Secret 名称 | 值 | 描述 | 是否必需 |
+| Secret name | Value | Description | Required |
 |-----------|----|----|----|
-| `CF_API_TOKEN` | Cloudflare API Token | [创建CF_API_TOKEN](https://dash.cloudflare.com/profile/api-tokens) | 必需 |
-| `CF_ACCOUNT_ID` | 你的 Cloudflare Account ID | [查看CF_ACCOUNT_ID](https://dash.cloudflare.com/caching/overview) | 必需 |
-| `JWT_SECRET` | 随机字符串 | `head -c 32 /dev/urandom \| base64` | 必需 |
-| `SMTP_HOST` | SMTP 服务器地址 | 邮件发送用，例如：smtp.exmail.qq.com | 非必需，未配置则无法注册 |
-| `SMTP_PORT` | SMTP 端口 | 例如：465 | 非必需，未配置则无法注册 |
-| `SMTP_USER` | SMTP 用户名 | 邮箱地址 | 非必需，未配置则无法注册 |
-| `SMTP_PASS` | SMTP 密码 | 应用专用密码（非主密码） | 非必需，未配置则无法注册 |
-| `SMTP_FROM` | 发送者邮箱 | 例如：noreply@example.com（未设置则使用 SMTP_USER） | 非必需，未配置则无法注册 |
-| `SMTP_FROM_NAME` | 发件人显示名称 | 例如：CForum（未设置则使用"论坛管理员"） | 非必需，未配置则无法注册 |
-| `BASE_URL` | 站点 URL | 例如：`https://forum.adysec.com`（未设置则自动使用当前请求域名） | 非必需，未配置则邮件异常 |
-| `TURNSTILE_SITE_KEY` | Cloudflare Turnstile Site Key | [Cloudflare Turnstile](https://dash.cloudflare.com/?to=/:account/turnstile) | 非必需，未配置则使用Turnstile |
-| `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile Secret | [Cloudflare Turnstile](https://dash.cloudflare.com/?to=/:account/turnstile) | 非必需，未配置则使用Turnstile |
-<img width="2244" height="1350" alt="图片" src="https://github.com/user-attachments/assets/77b109a9-ebb6-4e9d-a660-0828e28c5bd1" />
+| `CF_API_TOKEN` | Cloudflare API Token | [Create CF_API_TOKEN](https://dash.cloudflare.com/profile/api-tokens) | Required |
+| `CF_ACCOUNT_ID` | Your Cloudflare Account ID | [Find CF_ACCOUNT_ID](https://dash.cloudflare.com/caching/overview) | Required |
+| `JWT_SECRET` | Random string | `head -c 32 /dev/urandom \| base64` | Required |
+| `SMTP_HOST` | SMTP server address | Used for sending email, e.g. smtp.exmail.qq.com | Optional; registration won't work without it |
+| `SMTP_PORT` | SMTP port | e.g. 465 | Optional; registration won't work without it |
+| `SMTP_USER` | SMTP username | Email address | Optional; registration won't work without it |
+| `SMTP_PASS` | SMTP password | App-specific password (not your main password) | Optional; registration won't work without it |
+| `SMTP_FROM` | Sender email | e.g. noreply@example.com (defaults to SMTP_USER) | Optional; registration won't work without it |
+| `SMTP_FROM_NAME` | Sender display name | e.g. CForum (defaults to "Forum Admin") | Optional; registration won't work without it |
+| `BASE_URL` | Site URL | e.g. `https://forum.adysec.com` (defaults to the current request's domain) | Optional; email links may break without it |
+| `TURNSTILE_SITE_KEY` | Cloudflare Turnstile Site Key | [Cloudflare Turnstile](https://dash.cloudflare.com/?to=/:account/turnstile) | Optional; Turnstile is disabled without it |
+| `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile Secret | [Cloudflare Turnstile](https://dash.cloudflare.com/?to=/:account/turnstile) | Optional; Turnstile is disabled without it |
+<img width="2244" height="1350" alt="Screenshot" src="https://github.com/user-attachments/assets/77b109a9-ebb6-4e9d-a660-0828e28c5bd1" />
 
-#### 第四步：手动触发部署
+#### Step 4: Trigger a deployment manually
 
-在 GitHub 仓库的 **Actions** 页面：
-1. 选择 **Deploy to Cloudflare** workflow
-2. 点击 **Run workflow**
-3. 选择 `main` 分支并确认
+On your GitHub repository's **Actions** page:
+1. Select the **Deploy to Cloudflare** workflow
+2. Click **Run workflow**
+3. Select the `main` branch and confirm
 
 ---
 
-## 🌐 自定义域名配置（可选）
+## 🌐 Custom Domain Setup (optional)
 
-### 单域名方案（推荐）
+### Single-domain setup (recommended)
 
-CForum 采用 **Pages + Worker 混合架构，通过 Pages Functions 统一接入**：
+CForum uses a **hybrid Pages + Worker architecture with a single entry point through Pages Functions**:
 
 ```
-用户访问：https://forum.adysec.com
+User visits: https://forum.adysec.com
     ↓
-Cloudflare Pages CDN (智能路由)
-    ├─ /api/* → Pages Functions 代理 → Worker (D1/R2)
-    └─ 其他   → 返回静态文件 (index.html → 前端路由)
+Cloudflare Pages CDN (smart routing)
+    ├─ /api/* → Pages Functions proxy → Worker (D1/R2)
+    └─ other  → Return static file (index.html → frontend routing)
 ```
 
-**优点**：
-- ✅ 用户只需一个域名
-- ✅ 完全自动化，无需手动配置 Worker 域名
-- ✅ Pages 托管静态资源（免费）
-- ✅ Worker 隐身在后面（免费额度 10w/d）
+**Benefits**:
+- ✅ Users only need one domain
+- ✅ Fully automated — no need to configure a Worker domain manually
+- ✅ Pages hosts static assets (free)
+- ✅ Worker stays hidden behind it (free tier: 100k requests/day)
 
-### 绑定步骤
+### Binding steps
 
-1. 进入 [Cloudflare Dashboard](https://dash.cloudflare.com/) → **Pages**
-2. 选择 **cforum** 项目 → **Settings** → **Custom domains**
-3. 点击 **Add custom domain**，输入你的域名（如 `forum.adysec.com`）
-4. 完成验证 ✅
+1. Go to the [Cloudflare Dashboard](https://dash.cloudflare.com/) → **Pages**
+2. Select the **cforum** project → **Settings** → **Custom domains**
+3. Click **Add custom domain** and enter your domain (e.g. `forum.adysec.com`)
+4. Complete verification ✅
 
-**默认管理员账号**（首次登录后请立即修改！）：
-- 邮箱: `admin@adysec.com` / 密码: `Admin@123`
+**Default admin account** (change it immediately after first login!):
+- Email: `admin@adysec.com` / Password: `Admin@123`
 
-## 📄 许可证
+## 📄 License
 
-MIT License - 详见 [LICENSE](LICENSE)
+MIT License - see [LICENSE](LICENSE)
 
-## 🙋 支持
+## 🙋 Support
 
-- 💬 欢迎提交 Issue 和 Pull Request
-- 🌟 如果有帮助，请 Star 本项目！
+- 💬 Issues and Pull Requests are welcome
+- 🌟 If this project helps you, please give it a Star!

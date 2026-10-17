@@ -46,10 +46,10 @@ export function SettingsPage() {
 	async function saveProfile() {
 		if (!user) return;
 		setError('');
-		const err = username ? validateText(username, '用户名') : null;
+		const err = username ? validateText(username, 'Username') : null;
 		if (err) return setError(err);
-		if (username.length > 20) return setError('用户名过长 (最多 20 字符)');
-		if (avatarUrl && avatarUrl.length > 500) return setError('头像 URL 过长 (最多 500 字符)');
+		if (username.length > 20) return setError('Username is too long (max 20 characters)');
+		if (avatarUrl && avatarUrl.length > 500) return setError('Avatar URL is too long (max 500 characters)');
 
 		setLoading(true);
 		try {
@@ -64,7 +64,7 @@ export function SettingsPage() {
 			});
 			setUser(data.user);
 			setUserState(data.user);
-			alert('资料已更新');
+			alert('Profile updated');
 		} catch (e: any) {
 			setError(String(e?.message || e));
 		} finally {
@@ -76,7 +76,7 @@ export function SettingsPage() {
 		if (!user) return;
 		setError('');
 		// allow larger avatar images (2MB)
-		if (file.size > 2 * 1024 * 1024) return setError('文件过大 (最大 2MB)');
+		if (file.size > 2 * 1024 * 1024) return setError('File is too large (max 2MB)');
 
 		const formData = new FormData();
 		formData.append('file', file);
@@ -90,7 +90,7 @@ export function SettingsPage() {
 				body: formData
 			});
 			const data = (await res.json()) as any;
-			if (!res.ok) throw new Error(data?.error || '上传失败');
+			if (!res.ok) throw new Error(data?.error || 'Upload failed');
 			setAvatarUrl(data.url);
 		} catch (e: any) {
 			setError(String(e?.message || e));
@@ -102,7 +102,7 @@ export function SettingsPage() {
 	async function requestEmailChange() {
 		if (!user) return;
 		setError('');
-		if (!emailNew) return setError('请输入新邮箱');
+		if (!emailNew) return setError('Please enter a new email');
 		setLoading(true);
 		try {
 			await apiFetch('/user/change-email', {
@@ -110,7 +110,7 @@ export function SettingsPage() {
 				headers: getSecurityHeaders('POST'),
 				body: JSON.stringify({ new_email: emailNew, totp_code: emailTotp })
 			});
-			alert('验证邮件已发送至新地址，请前往新邮箱确认。');
+			alert('A verification email has been sent to the new address. Please confirm it there.');
 			setEmailNew('');
 			setEmailTotp('');
 		} catch (e: any) {
@@ -155,7 +155,7 @@ export function SettingsPage() {
 			setTotpSecret('');
 			setTotpUri('');
 			setTotpCode('');
-			alert('2FA 已启用');
+			alert('2FA enabled');
 		} catch (e: any) {
 			setError(String(e?.message || e));
 		} finally {
@@ -166,7 +166,7 @@ export function SettingsPage() {
 	async function deleteAccount() {
 		if (!user) return;
 		setError('');
-		if (!confirm('确定要删除您的账号吗？此操作无法撤销。')) return;
+		if (!confirm('Are you sure you want to delete your account? This cannot be undone.')) return;
 		setLoading(true);
 		try {
 			await apiFetch('/user/delete', {
@@ -188,8 +188,8 @@ export function SettingsPage() {
 			<div className="space-y-6">
 				<div className="flex items-center justify-between">
 					<div>
-						<h1 className="text-2xl font-semibold tracking-tight">设置</h1>
-						<p className="text-sm text-muted-foreground">对账号资料、邮箱和 2FA 进行管理。</p>
+						<h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+						<p className="text-sm text-muted-foreground">Manage your profile, email and 2FA.</p>
 					</div>
 					<Button
 						variant="outline"
@@ -198,7 +198,7 @@ export function SettingsPage() {
 							window.location.href = '/';
 						}}
 					>
-						退出登录
+						Log Out
 					</Button>
 				</div>
 
@@ -206,22 +206,22 @@ export function SettingsPage() {
 
 				<Card>
 					<CardHeader>
-						<CardTitle>个人资料</CardTitle>
+						<CardTitle>Profile</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="grid gap-4 sm:grid-cols-2">
 							<div className="space-y-2">
-								<Label htmlFor="profile-username">用户名</Label>
+								<Label htmlFor="profile-username">Username</Label>
 								<Input id="profile-username" value={username} onChange={(e) => setUsername(e.target.value)} maxLength={20} />
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="profile-avatar">头像 URL</Label>
+								<Label htmlFor="profile-avatar">Avatar URL</Label>
 								<Input id="profile-avatar" value={avatarUrl || ''} onChange={(e) => setAvatarUrl(e.target.value)} />
 							</div>
 						</div>
 
 						<div className="space-y-2">
-							<Label htmlFor="avatar-file">上传头像 (最大 500KB)</Label>
+							<Label htmlFor="avatar-file">Upload avatar (max 500KB)</Label>
 							<Input
 								id="avatar-file"
 								type="file"
@@ -241,27 +241,27 @@ export function SettingsPage() {
 								checked={emailNotifications}
 								onChange={(e) => setEmailNotifications(e.target.checked)}
 							/>
-							接收邮件通知 (仅限评论)
+							Receive email notifications (comments only)
 						</label>
 
 						<Button onClick={saveProfile} disabled={loading}>
-							{loading ? '保存中...' : '保存资料'}
+							{loading ? 'Saving...' : 'Save Profile'}
 						</Button>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader>
-						<CardTitle>修改邮箱</CardTitle>
+						<CardTitle>Change Email</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<div className="grid gap-4 sm:grid-cols-2">
 							<div className="space-y-2">
-								<Label htmlFor="email-new">新邮箱地址</Label>
+								<Label htmlFor="email-new">New email address</Label>
 								<Input id="email-new" type="email" value={emailNew} onChange={(e) => setEmailNew(e.target.value)} />
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="email-totp">双重验证码 (若开启)</Label>
+								<Label htmlFor="email-totp">2FA code (if enabled)</Label>
 								<Input
 									id="email-totp"
 									type="text"
@@ -274,32 +274,32 @@ export function SettingsPage() {
 							</div>
 						</div>
 						<Button onClick={requestEmailChange} disabled={loading}>
-							{loading ? '处理中...' : '发送确认邮件'}
+							{loading ? 'Processing...' : 'Send Confirmation Email'}
 						</Button>
-						<div className="text-sm text-muted-foreground">确认链接将发送到新邮箱。</div>
+						<div className="text-sm text-muted-foreground">A confirmation link will be sent to the new email.</div>
 					</CardContent>
 				</Card>
 
 				<Card>
 					<CardHeader>
-						<CardTitle>双重验证 (2FA)</CardTitle>
+						<CardTitle>Two-Factor Authentication (2FA)</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						{user?.totp_enabled ? (
-							<div className="rounded-md border bg-muted/30 p-3 text-sm">✅ 2FA 已启用</div>
+							<div className="rounded-md border bg-muted/30 p-3 text-sm">✅ 2FA is enabled</div>
 						) : (
 							<>
-								<div className="text-sm text-muted-foreground">启用 2FA 以保护您的账户。</div>
+								<div className="text-sm text-muted-foreground">Enable 2FA to protect your account.</div>
 								<Button onClick={startTotpSetup} disabled={loading || !!totpSecret}>
-									{loading ? '处理中...' : '开始启用'}
+									{loading ? 'Processing...' : 'Set Up 2FA'}
 								</Button>
 								{totpSecret ? (
 									<div className="space-y-3 rounded-md border p-4">
-										<div className="text-sm font-medium">1. 扫描二维码</div>
+										<div className="text-sm font-medium">1. Scan the QR code</div>
 										<canvas ref={qrCanvasRef} />
-										<div className="text-sm text-muted-foreground">或手动输入密钥：{totpSecret}</div>
+										<div className="text-sm text-muted-foreground">Or enter the key manually: {totpSecret}</div>
 										<Separator />
-										<div className="text-sm font-medium">2. 输入验证码</div>
+										<div className="text-sm font-medium">2. Enter the code</div>
 										<div className="flex flex-wrap items-center gap-2">
 											<Input
 												value={totpCode}
@@ -310,7 +310,7 @@ export function SettingsPage() {
 												className="w-32"
 											/>
 											<Button onClick={verifyTotp} disabled={loading}>
-												{loading ? '验证中...' : '验证并启用'}
+												{loading ? 'Verifying...' : 'Verify and Enable'}
 											</Button>
 										</div>
 									</div>
@@ -322,13 +322,13 @@ export function SettingsPage() {
 
 				<Card className="border-destructive/40">
 					<CardHeader>
-						<CardTitle className="text-destructive">危险区域</CardTitle>
+						<CardTitle className="text-destructive">Danger Zone</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="text-sm text-muted-foreground">删除账号后无法恢复。</div>
+						<div className="text-sm text-muted-foreground">Deleted accounts cannot be recovered.</div>
 						<div className="grid gap-4 sm:grid-cols-2">
 							<div className="space-y-2">
-								<Label htmlFor="delete-password">密码</Label>
+								<Label htmlFor="delete-password">Password</Label>
 								<Input
 									id="delete-password"
 									type="password"
@@ -338,7 +338,7 @@ export function SettingsPage() {
 								/>
 							</div>
 							<div className="space-y-2">
-								<Label htmlFor="delete-totp">双重验证码 (若开启)</Label>
+								<Label htmlFor="delete-totp">2FA code (if enabled)</Label>
 								<Input
 									id="delete-totp"
 									type="text"
@@ -351,7 +351,7 @@ export function SettingsPage() {
 							</div>
 						</div>
 						<Button variant="destructive" onClick={deleteAccount} disabled={loading}>
-							{loading ? '处理中...' : '删除账号'}
+							{loading ? 'Processing...' : 'Delete Account'}
 						</Button>
 					</CardContent>
 				</Card>

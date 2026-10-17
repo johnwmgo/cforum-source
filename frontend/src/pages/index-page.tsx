@@ -312,7 +312,7 @@ export function IndexPage() {
 				const sortParam = `&sort_by=${encodeURIComponent(sortBy)}&sort_dir=${encodeURIComponent(sortDir)}`;
 				const res = await fetch(`/api/posts?limit=${pageLimit}&offset=${offset}${categoryParam}${searchParam}${sortParam}`);
 				if (!res.ok) {
-					let msg = `加载帖子失败 (${res.status})`;
+					let msg = `Failed to load posts (${res.status})`;
 					try {
 						const body = await res.text();
 						if (body) msg += `: ${body}`;
@@ -352,11 +352,11 @@ export function IndexPage() {
 	React.useEffect(() => {
 		const params = new URLSearchParams(window.location.search);
 		if (params.get('verified') === 'true') {
-			setBanner('邮箱验证成功，现在可以登录。');
+			setBanner('Email verified successfully. You can now log in.');
 			params.delete('verified');
 			window.history.replaceState({}, document.title, `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`);
 		} else if (params.get('email_changed') === 'true') {
-			setBanner('邮箱更换成功。');
+			setBanner('Email changed successfully.');
 			params.delete('email_changed');
 			window.history.replaceState({}, document.title, `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`);
 		}
@@ -412,7 +412,7 @@ export function IndexPage() {
 
 	async function adminDeletePost(post: Post) {
 		if (!user || user.role !== 'admin') return;
-		if (!confirm('确定要删除这个帖子吗？此操作无法撤销。')) return;
+		if (!confirm('Are you sure you want to delete this post? This cannot be undone.')) return;
 		setAdminActionPostId(post.id);
 		try {
 			await apiFetch(`/admin/posts/${post.id}`, {
@@ -454,13 +454,13 @@ export function IndexPage() {
 		}
 
 		setCreateError('');
-		const titleErr = validateText(newTitle, '标题');
+		const titleErr = validateText(newTitle, 'Title');
 		if (titleErr) return setCreateError(titleErr);
-		const contentErr = validateText(newContent, '内容');
+		const contentErr = validateText(newContent, 'Content');
 		if (contentErr) return setCreateError(contentErr);
-		if (newTitle.length > 30) return setCreateError('标题过长 (最多 30 字符)');
-		if (newContent.length > 3000) return setCreateError('内容过长 (最多 3000 字符)');
-		if (turnstileActive && !turnstileToken) return setCreateError('请完成验证码验证');
+		if (newTitle.length > 30) return setCreateError('Title is too long (max 30 characters)');
+		if (newContent.length > 3000) return setCreateError('Content is too long (max 3000 characters)');
+		if (turnstileActive && !turnstileToken) return setCreateError('Please complete the CAPTCHA');
 
 		setCreateLoading(true);
 		try {
@@ -523,11 +523,11 @@ export function IndexPage() {
 				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 					<div>
 							<h1 className="text-2xl font-semibold tracking-tight">CForum</h1>
-						<p className="text-sm text-muted-foreground">由 Cloudflare Workers、Pages、D1、R2 提供服务。</p>
+						<p className="text-sm text-muted-foreground">Powered by Cloudflare Workers, Pages, D1 and R2.</p>
 					</div>
 					<div className="flex items-center gap-2">
 						<label className="text-sm text-muted-foreground" htmlFor="category-filter">
-							分类
+							Category
 						</label>
 						<select
 							id="category-filter"
@@ -538,8 +538,8 @@ export function IndexPage() {
 								setPageOffset(0);
 							}}
 						>
-							<option value="">全部</option>
-							<option value="uncategorized">未分类</option>
+							<option value="">All</option>
+							<option value="uncategorized">Uncategorized</option>
 							{categories.map((c) => (
 								<option key={c.id} value={String(c.id)}>
 									{c.name}
@@ -547,7 +547,7 @@ export function IndexPage() {
 							))}
 						</select>
 						<label className="text-sm text-muted-foreground" htmlFor="sort-filter">
-							排序
+							Sort
 						</label>
 						<select
 							id="sort-filter"
@@ -558,11 +558,11 @@ export function IndexPage() {
 								setPageOffset(0);
 							}}
 						>
-							<option value="time_desc">最新发布</option>
-							<option value="time_asc">最早发布</option>
-							<option value="likes_desc">最多点赞</option>
-							<option value="comments_desc">最多评论</option>
-							<option value="views_desc">最多观看</option>
+							<option value="time_desc">Newest</option>
+							<option value="time_asc">Oldest</option>
+							<option value="likes_desc">Most liked</option>
+							<option value="comments_desc">Most commented</option>
+							<option value="views_desc">Most viewed</option>
 						</select>
 						<form
 							className="flex items-center gap-2"
@@ -575,12 +575,12 @@ export function IndexPage() {
 							<Input
 								value={searchInput}
 								onChange={(e) => setSearchInput(e.target.value)}
-								placeholder="搜索标题/内容"
+								placeholder="Search titles / content"
 								className="h-9 w-48"
 							/>
 							<Button variant="outline" size="sm" type="submit" disabled={loading}>
 								<Search className="h-4 w-4" />
-								<span className="sr-only">搜索</span>
+								<span className="sr-only">Search</span>
 							</Button>
 							{searchInput || searchQuery ? (
 								<Button
@@ -595,13 +595,13 @@ export function IndexPage() {
 									disabled={loading}
 								>
 									<X className="h-4 w-4" />
-									<span className="sr-only">清除</span>
+									<span className="sr-only">Clear</span>
 								</Button>
 							) : null}
 						</form>
 						<Button variant="outline" size="sm" onClick={() => fetchPosts(0)} disabled={loading}>
 							<RefreshCw className="h-4 w-4" />
-							<span className="sr-only">刷新</span>
+							<span className="sr-only">Refresh</span>
 						</Button>
 					</div>
 				</div>
@@ -610,33 +610,33 @@ export function IndexPage() {
 					<Card>
 						<CardHeader>
 							<CardTitle className="flex items-center justify-between gap-2">
-								<span>发布新帖</span>
+								<span>New Post</span>
 								<Button type="button" variant="outline" size="sm" onClick={() => setCreateOpen((v) => !v)}>
 									{createOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-									<span className="sr-only">{createOpen ? '收起' : '展开'}</span>
+									<span className="sr-only">{createOpen ? 'Collapse' : 'Expand'}</span>
 								</Button>
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
 							{!createOpen ? (
-								<div className="text-sm text-muted-foreground">点击右侧按钮展开编辑器。</div>
+								<div className="text-sm text-muted-foreground">Click the button on the right to open the editor.</div>
 							) : (
 								<form className="space-y-4" onSubmit={createPost}>
 								{createError ? <div className="rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive">{createError}</div> : null}
 								<div className="space-y-4">
 									<div className="space-y-2">
-										<Label htmlFor="new-title">标题</Label>
+										<Label htmlFor="new-title">Title</Label>
 										<Input id="new-title" maxLength={30} value={newTitle} onChange={(e) => setNewTitle(e.target.value)} required />
 									</div>
 									<div className="space-y-2">
-										<Label htmlFor="new-category">分类 (可选)</Label>
+										<Label htmlFor="new-category">Category (optional)</Label>
 										<select
 											id="new-category"
 											className="h-9 w-full rounded-md border bg-background px-3 text-sm"
 											value={newCategoryId}
 											onChange={(e) => setNewCategoryId(e.target.value)}
 										>
-											<option value="">无分类</option>
+											<option value="">No category</option>
 											{categories.map((c) => (
 												<option key={c.id} value={String(c.id)}>
 													{c.name}
@@ -647,12 +647,12 @@ export function IndexPage() {
 								</div>
 								<div className="space-y-2">
 								<div className="flex flex-wrap items-center justify-between gap-2">
-									<Label htmlFor="new-content">内容 (支持 Markdown)</Label>
+									<Label htmlFor="new-content">Content (Markdown supported)</Label>
 									<div className="flex items-center gap-2">
-										<span className="text-xs text-muted-foreground">快捷键：Ctrl+1/2/3、Ctrl+B/I/U、Ctrl+K、Ctrl+Shift+K</span>
+										<span className="text-xs text-muted-foreground">Shortcuts: Ctrl+1/2/3, Ctrl+B/I/U, Ctrl+K, Ctrl+Shift+K</span>
 										<Button type="button" variant="outline" size="sm" onClick={() => setPreviewOpen((v) => !v)}>
 											{previewOpen ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-											<span className="sr-only">{previewOpen ? '关闭预览' : '打开预览'}</span>
+											<span className="sr-only">{previewOpen ? 'Close preview' : 'Open preview'}</span>
 										</Button>
 									</div>
 								</div>
@@ -668,11 +668,11 @@ export function IndexPage() {
 											className="min-h-[220px]"
 											required
 										/>
-										<div className="text-xs text-muted-foreground">Ctrl+T 表格，Ctrl+Shift+M 公式，Ctrl+Shift+Q 引用，Alt+Shift+5 删除线</div>
+										<div className="text-xs text-muted-foreground">Ctrl+T table, Ctrl+Shift+M formula, Ctrl+Shift+Q quote, Alt+Shift+5 strikethrough</div>
 									</div>
 									{previewOpen ? (
 										<div className="rounded-md border bg-muted/20 p-3">
-											<div className="mb-2 text-xs font-medium text-muted-foreground">预览</div>
+											<div className="mb-2 text-xs font-medium text-muted-foreground">Preview</div>
 											<div
 												ref={previewRef}
 												className="prose max-w-none break-words [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1"
@@ -684,7 +684,7 @@ export function IndexPage() {
 							</div>
 								{/* image upload button */}
 		<div className="space-y-2">
-			<label className="block text-sm font-medium text-muted-foreground">上传图片</label>
+			<label className="block text-sm font-medium text-muted-foreground">Upload Image</label>
 			<input
 				type="file"
 				accept="image/*"
@@ -695,7 +695,7 @@ export function IndexPage() {
 					setUploadError('');
 					// allow up to 2MB
 					if (file.size > 2 * 1024 * 1024) {
-						setUploadError('文件过大 (最大 2MB)');
+						setUploadError('File is too large (max 2MB)');
 						return;
 					}
 					setUploadLoading(true);
@@ -709,7 +709,7 @@ export function IndexPage() {
 							body: formData
 						});
 						const data = await res.json();
-						if (!res.ok) throw new Error(data?.error || '上传失败');
+						if (!res.ok) throw new Error(data?.error || 'Upload failed');
                         // insert markdown link at cursor and ensure preview is visible
                         insertIntoContent(`
 
@@ -725,12 +725,12 @@ export function IndexPage() {
 				}}
 			/>
 			{uploadError ? <div className="text-sm text-destructive">{uploadError}</div> : null}
-			{uploadLoading ? <div className="text-sm text-muted-foreground">上传中…</div> : null}
+			{uploadLoading ? <div className="text-sm text-muted-foreground">Uploading…</div> : null}
 		</div>
 		<TurnstileWidget enabled={turnstileActive} siteKey={siteKey} onToken={setTurnstileToken} resetKey={turnstileResetKey} />
 
 								<Button type="submit" disabled={createLoading}>
-									{createLoading ? '发布中...' : '发布'}
+									{createLoading ? 'Publishing...' : 'Publish'}
 								</Button>
 							</form>
 							)}
@@ -740,9 +740,9 @@ export function IndexPage() {
 					<Card>
 						<CardContent className="py-6 text-sm text-muted-foreground">
 							<a className="text-foreground underline" href="/login">
-								登录
+								Log in
 							</a>{' '}
-							后可发布、点赞和评论。
+							to post, like and comment.
 						</CardContent>
 					</Card>
 				)}
@@ -753,11 +753,11 @@ export function IndexPage() {
 					<div ref={listTopRef} />
 					{loading ? (
 						<Card>
-							<CardContent className="py-6 text-sm text-muted-foreground">加载中...</CardContent>
+							<CardContent className="py-6 text-sm text-muted-foreground">Loading...</CardContent>
 						</Card>
 					) : posts.length === 0 ? (
 						<Card>
-							<CardContent className="py-6 text-sm text-muted-foreground">暂无帖子</CardContent>
+							<CardContent className="py-6 text-sm text-muted-foreground">No posts yet</CardContent>
 						</Card>
 					) : (
 						posts.map((p) => {
@@ -784,7 +784,7 @@ export function IndexPage() {
 														{p.is_pinned ? (
 															<span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300">
 																<Pin className="h-3.5 w-3.5" />
-																置顶
+																Pinned
 															</span>
 														) : null}
 														<a className="truncate text-lg font-semibold hover:underline" href={`/posts/${p.id}`}>
@@ -809,7 +809,7 @@ export function IndexPage() {
 																aria-expanded={menuOpen}
 															>
 																<MoreVertical className="h-4 w-4" />
-																<span className="sr-only">更多</span>
+																<span className="sr-only">More</span>
 															</Button>
 															{menuOpen ? (
 																<div
@@ -825,7 +825,7 @@ export function IndexPage() {
 																		onClick={() => void adminTogglePin(p)}
 																	>
 																		<Pin className="h-4 w-4" />
-																		{p.is_pinned ? '取消置顶' : '置顶'}
+																		{p.is_pinned ? 'Unpin' : 'Pin'}
 																	</button>
 																	<button
 																		type="button"
@@ -834,17 +834,17 @@ export function IndexPage() {
 																		onClick={() => void adminDeletePost(p)}
 																	>
 																		<Trash2 className="h-4 w-4" />
-																		删除
+																		Delete
 																	</button>
 																	<div className="my-1 h-px bg-border" />
-																	<div className="px-2 py-1 text-xs font-medium text-muted-foreground">移动到分类</div>
+																	<div className="px-2 py-1 text-xs font-medium text-muted-foreground">Move to category</div>
 																	<button
 																		type="button"
 																		disabled={actionLoading}
 																		className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm hover:bg-muted disabled:opacity-50"
 																		onClick={() => void adminMovePost(p, null)}
 																	>
-																		未分类
+																		Uncategorized
 																	</button>
 																	{categories.map((c) => (
 																		<button
@@ -881,7 +881,7 @@ export function IndexPage() {
 														{p.author_role === 'admin' ? (
 															<span className="inline-flex items-center gap-1 rounded border border-indigo-500/30 bg-indigo-500/10 px-1.5 py-0.5 text-[10px] font-medium text-indigo-700 dark:text-indigo-300">
 																<Shield className="h-3 w-3" />
-																<span className="sr-only">管理员</span>
+																<span className="sr-only">Admin</span>
 															</span>
 														) : null}
 													</span>
@@ -926,7 +926,7 @@ export function IndexPage() {
 							onClick={() => fetchPosts(Math.max(0, pageOffset - pageLimit))}
 						>
 							<ChevronLeft className="h-4 w-4" />
-							<span className="sr-only">上一页</span>
+							<span className="sr-only">Previous page</span>
 						</Button>
 						<div className="flex items-center gap-1">
 							{pages.map((p, idx) =>
@@ -954,7 +954,7 @@ export function IndexPage() {
 							onClick={() => fetchPosts(pageOffset + pageLimit)}
 						>
 							<ChevronRight className="h-4 w-4" />
-							<span className="sr-only">下一页</span>
+							<span className="sr-only">Next page</span>
 						</Button>
 					</div>
 					<form
@@ -969,17 +969,17 @@ export function IndexPage() {
 						}}
 					>
 						<div className="text-sm text-muted-foreground">
-							第 {currentPage} / {totalPages} 页
+							Page {currentPage} / {totalPages}
 						</div>
 						<Input
 							value={jumpTo}
 							onChange={(e) => setJumpTo(e.target.value)}
 							inputMode="numeric"
-							placeholder="跳页"
+							placeholder="Page"
 							className="h-9 w-20"
 						/>
 						<Button variant="outline" size="sm" type="submit" disabled={loading}>
-							跳转
+							Go
 						</Button>
 					</form>
 				</div>

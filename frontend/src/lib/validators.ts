@@ -13,10 +13,10 @@ export function isVisuallyEmpty(str: string) {
 }
 
 export function validateText(str: string, label: string) {
-	if (!str) return `${label}不能为空`;
-	if (isVisuallyEmpty(str)) return `${label}不能为空（包含不可见字符）`;
-	if (hasInvisibleCharacters(str)) return `${label}包含非法隐形字符`;
-	if (hasControlCharacters(str)) return `${label}包含非法控制字符`;
+	if (!str) return `${label} cannot be empty`;
+	if (isVisuallyEmpty(str)) return `${label} cannot be empty (contains only invisible characters)`;
+	if (hasInvisibleCharacters(str)) return `${label} contains illegal invisible characters`;
+	if (hasControlCharacters(str)) return `${label} contains illegal control characters`;
 	return null;
 }
 

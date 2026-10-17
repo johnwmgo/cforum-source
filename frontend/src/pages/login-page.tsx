@@ -27,7 +27,7 @@ export function LoginPage() {
 		e.preventDefault();
 		setError('');
 		if (turnstileActive && !turnstileToken) {
-			setError('请完成验证码验证');
+			setError('Please complete the CAPTCHA');
 			return;
 		}
 		setLoading(true);
@@ -47,10 +47,10 @@ export function LoginPage() {
 				setTurnstileToken('');
 				setTurnstileResetKey((v) => v + 1);
 				if (data?.error === 'TOTP_REQUIRED') {
-					setError('请输入 2FA 验证码');
+					setError('Please enter your 2FA code');
 					return;
 				}
-				throw new Error(data?.error || '登录失败');
+				throw new Error(data?.error || 'Login failed');
 			}
 
 			setUser(data.user);
@@ -68,14 +68,14 @@ export function LoginPage() {
 			<main className="mx-auto flex max-w-5xl justify-center px-4 py-10">
 				<Card className="w-full max-w-md">
 					<CardHeader>
-						<CardTitle>登录</CardTitle>
+						<CardTitle>Log in</CardTitle>
 					</CardHeader>
 					<CardContent>
 						<form className="space-y-4" onSubmit={handleSubmit}>
 							{error ? <div className="rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive">{error}</div> : null}
 
 							<div className="space-y-2">
-								<Label htmlFor="login-email">邮箱</Label>
+								<Label htmlFor="login-email">Email</Label>
 								<Input
 									id="login-email"
 									name="email"
@@ -88,7 +88,7 @@ export function LoginPage() {
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="login-password">密码</Label>
+								<Label htmlFor="login-password">Password</Label>
 								<Input
 									id="login-password"
 									name="password"
@@ -101,7 +101,7 @@ export function LoginPage() {
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="login-totp">双重验证码 (若开启)</Label>
+								<Label htmlFor="login-totp">2FA code (if enabled)</Label>
 								<Input
 									id="login-totp"
 									name="totp_code"
@@ -109,7 +109,7 @@ export function LoginPage() {
 									inputMode="numeric"
 									pattern="\d*"
 									maxLength={6}
-									placeholder="选填"
+									placeholder="Optional"
 									autoComplete="one-time-code"
 									value={totpCode}
 									onChange={(e) => setTotpCode(e.target.value)}
@@ -119,15 +119,15 @@ export function LoginPage() {
 <TurnstileWidget enabled={turnstileActive} siteKey={siteKey} onToken={setTurnstileToken} resetKey={turnstileResetKey} />
 
 							<Button className="w-full" type="submit" disabled={loading}>
-								{loading ? '处理中...' : '登录'}
+								{loading ? 'Processing...' : 'Log in'}
 							</Button>
 
 							<div className="flex justify-between text-sm">
 								<a className="text-muted-foreground hover:underline" href="/register">
-									没有账号？注册
+									Don't have an account? Register
 								</a>
 								<a className="text-muted-foreground hover:underline" href="/forgot">
-									忘记密码？
+									Forgot password?
 								</a>
 							</div>
 						</form>
