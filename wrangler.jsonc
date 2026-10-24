@@ -41,12 +41,12 @@
 	 * https://developers.cloudflare.com/workers/configuration/routing/
 	 *
 	 * Example for custom domain binding:
-	 * "routes": [
-	 *   {
-	 *     "pattern": "api.example.com/*",
-	 *     "zone_name": "example.com"
-	 *   }
-	 * ]
+	 "routes": [
+	    {
+	      "pattern": "forum.felting.com/*",
+	      "zone_name": "felting.com"
+	    }
+	  ]
 	 * Add your routes here after binding custom domains in Cloudflare Dashboard
 	 */
 	/**
@@ -70,6 +70,9 @@
 	 * wrangler secret put JWT_SECRET
 	 * Generate a random value with: head -c 32 /dev/urandom | base64
 	 */
+	"secrets": {
+    	"required": ["JWT_SECRET"]
+  	},
 	// "vars": {  "MY_VARIABLE": "production_value" }
 	/**
 	 * Service Bindings (communicate between multiple Workers)
