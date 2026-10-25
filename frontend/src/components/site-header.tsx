@@ -81,17 +81,15 @@ export function SiteHeader({
 								</a>
 							</Button>
 							<Separator orientation="vertical" className="h-6" />
+							<!-- jwg changed logout button -->
 							<Button
-								variant="destructive"
-								size="sm"
+								variant="outline"
 								onClick={() => {
 									logout();
-									onLogout?.();
 									window.location.href = '/';
 								}}
 							>
-								<LogOut className="h-4 w-4" />
-								<span className="sr-only">Log out</span>
+								Log Out
 							</Button>
 						</>
 					) : (
