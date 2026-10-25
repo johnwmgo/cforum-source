@@ -279,6 +279,31 @@ ${htmlContent}
     }
 }
 
+// Cloudflare Email Sending via the send_email binding.
+// Workers can't open TCP sockets to Cloudflare IPs, so Cloudflare's own SMTP
+// host (smtp.mx.cloudflare.net) is unreachable via sendViaSMTP.
+async function sendViaBinding(env: any, to: string, subject: string, htmlContent: string) {
+    const from = env.SMTP_FROM;
+    if (!from) {
+        throw new Error('SMTP_FROM environment variable is not set');
+    }
+
+    console.log('[Email Binding] Sending email via Cloudflare Email Sending...');
+    try {
+        const result = await env.EMAIL.send({
+            to,
+            from: { email: from, name: env.SMTP_FROM_NAME || DEFAULT_FROM_NAME },
+            subject,
+            html: htmlContent,
+            text: htmlContent.replace(/<[^>]*>/g, ''),
+        });
+        console.log(`[Email Binding] Email sent successfully (messageId: ${result?.messageId})`);
+    } catch (e: any) {
+        console.error(`[Email Binding] Send failed: ${e?.code} ${e?.message}`);
+        throw e;
+    }
+}
+
 // Resend API Send Function
 async function sendViaResend(env: any, to: string, subject: string, htmlContent: string) {
     if (!env.RESEND_KEY) {
@@ -321,6 +346,13 @@ export async function sendEmail(to: string, subject: string, htmlContent: string
     } catch (e) {
         console.error('[Email] MX check failed:', e);
         throw e;
+    }
+
+    // Prefer the Cloudflare Email Sending binding when available
+    if (env && env.EMAIL) {
+        await sendViaBinding(env, to, subject, htmlContent);
+        console.log(`[Email] ✓ Email successfully sent to ${to}`);
+        return;
     }
 
     // Try Resend if configured

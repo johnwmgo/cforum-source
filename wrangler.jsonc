@@ -33,6 +33,15 @@
 		}
 	],
 	/**
+	 * Cloudflare Email Sending (verification and notification emails)
+	 * https://developers.cloudflare.com/email-service/api/send-emails/workers-api/
+	 */
+	"send_email": [
+		{
+			"name": "EMAIL"
+		}
+	],
+	/**
 	 * Enable default *.workers.dev domain
 	 */
 	"workers_dev": true,
