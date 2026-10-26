@@ -3,57 +3,59 @@
 @tailwind utilities;
 
 @layer base {
+	/* light mode: felting.com "dyed wool" palette (fleece, ink, marigold, indigo) */
 	:root {
-		--background: 0 0% 100%;
-		--foreground: 222.2 84% 4.9%;
+		--background: 45 18.2% 95.7%;
+		--foreground: 222.4 21.5% 15.5%;
 
 		--card: 0 0% 100%;
-		--card-foreground: 222.2 84% 4.9%;
+		--card-foreground: 222.4 21.5% 15.5%;
 
-		--primary: 222.2 47.4% 11.2%;
-		--primary-foreground: 210 40% 98%;
+		--primary: 41.1 74.2% 52.9%;
+		--primary-foreground: 222.4 21.5% 15.5%;
 
-		--secondary: 210 40% 96.1%;
-		--secondary-foreground: 222.2 47.4% 11.2%;
+		--secondary: 50 14.3% 91.8%;
+		--secondary-foreground: 222.4 21.5% 15.5%;
 
-		--muted: 210 40% 96.1%;
-		--muted-foreground: 215.4 16.3% 46.9%;
+		--muted: 50 14.3% 91.8%;
+		--muted-foreground: 220 14% 33.7%;
 
-		--accent: 210 40% 96.1%;
-		--accent-foreground: 222.2 47.4% 11.2%;
+		--accent: 50 14.3% 91.8%;
+		--accent-foreground: 222.4 21.5% 15.5%;
 
 		--destructive: 0 84.2% 60.2%;
 		--destructive-foreground: 210 40% 98%;
 
-		--border: 214.3 31.8% 91.4%;
-		--input: 214.3 31.8% 91.4%;
-		--ring: 222.2 84% 4.9%;
+		--border: 60 8.4% 83.7%;
+		--input: 60 8.4% 83.7%;
+		--ring: 225.4 40.2% 34.1%;
 	}
+	/* dark mode: felting.com dark palette (marigold buttons stay the same) */
 	.dark {
-		--background: 222.2 84% 4.9%;
-		--foreground: 210 40% 98%;
+		--background: 223.6 19.3% 11.2%;
+		--foreground: 45 17.4% 91%;
 
-		--card: 222.2 84% 4.9%;
-		--card-foreground: 210 40% 98%;
+		--card: 222.9 18.9% 14.5%;
+		--card-foreground: 45 17.4% 91%;
 
-		--primary: 210 40% 98%;
-		--primary-foreground: 222.2 47.4% 11.2%;
+		--primary: 41.1 74.2% 52.9%;
+		--primary-foreground: 222.4 21.5% 15.5%;
 
-		--secondary: 217.2 32.6% 17.5%;
-		--secondary-foreground: 210 40% 98%;
+		--secondary: 222.4 17.5% 19%;
+		--secondary-foreground: 45 17.4% 91%;
 
-		--muted: 217.2 32.6% 17.5%;
-		--muted-foreground: 215 20.2% 65.1%;
+		--muted: 222.4 17.5% 19%;
+		--muted-foreground: 221.1 12.6% 70.4%;
 
-		--accent: 217.2 32.6% 17.5%;
-		--accent-foreground: 210 40% 98%;
+		--accent: 222.4 17.5% 19%;
+		--accent-foreground: 45 17.4% 91%;
 
 		--destructive: 0 62.8% 30.6%;
 		--destructive-foreground: 210 40% 98%;
 
-		--border: 217.2 32.6% 17.5%;
-		--input: 217.2 32.6% 17.5%;
-		--ring: 212.7 26.8% 83.9%;
+		--border: 222 16.1% 24.3%;
+		--input: 222 16.1% 24.3%;
+		--ring: 227.7 73.7% 80.6%;
 	}
 
 	* {
@@ -62,6 +64,13 @@
 
 	body {
 		@apply bg-background text-foreground;
+	}
+
+	/* felting.com serif headings */
+	h1,
+	h2,
+	h3 {
+		font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif;
 	}
 }
 
@@ -211,14 +220,23 @@
 	line-height: 1.75;
 }
 
+/* felting.com link colors: indigo in light mode, periwinkle in dark mode */
 .prose a {
-	color: #3b82f6;
+	color: #34457a;
 	text-decoration: underline;
 	text-underline-offset: 2px;
 }
 
 .prose a:hover {
-	color: #2563eb;
+	color: #27345f;
+}
+
+.dark .prose a {
+	color: #a9b8f2;
+}
+
+.dark .prose a:hover {
+	color: #c9d3f8;
 }
 
 .prose strong {
