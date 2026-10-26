@@ -5,6 +5,14 @@ import { uploadImage, deleteImage, listAllKeys, getPublicUrl, getKeyFromUrl, det
 import * as OTPAuth from 'otpauth';
 import { Security, UserPayload } from './security';
 
+// Generated Env marks bindings optional (the wrangler "env" blocks don't redeclare them),
+// but the top-level deploy always has the D1 binding. Secrets aren't in the generated types.
+interface AppEnv extends Omit<Env, 'cforum_db'> {
+    cforum_db: D1Database;
+    BASE_URL?: string;
+    JWT_SECRET?: string;
+}
+
 interface DBUser {
     id: number;
     email: string;
@@ -104,7 +112,7 @@ async function verifyTurnstile(token: string, ip: string, secretKey: string): Pr
 }
 
 export default {
-	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+	async fetch(request: Request, env: AppEnv, ctx: ExecutionContext): Promise<Response> {
 		const url = new URL(request.url);
 		const method = request.method;
 
