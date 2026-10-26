@@ -133,9 +133,28 @@ Cloudflare Pages CDN (smart routing)
 **Default admin account** (change it immediately after first login!):
 - Email: `admin@adysec.com` / Password: `Admin@123`
 
+## 🔧 Modifications
+
+This is a modified version of [adysec/CForum](https://github.com/adysec/CForum), changed by johnwmgo starting 2026-10-16 to run the Felting Forum at [forum.felting.com](https://forum.felting.com). The original code is by AdySec (last upstream commit `1f80425`, 2026-02-28).
+
+Main changes from the original:
+
+- **Translation** - UI text, comments and docs translated from Chinese to English; post dates shown in English (2026-10-16 to 2026-10-25)
+- **Deployment** - Pointed at our own Cloudflare Worker, D1 database and R2 bucket; Node 24 and newer GitHub Actions in the deploy workflow; API tests run before each deploy (2026-10-16 to 2026-10-25)
+- **Email** - Sends email through the Cloudflare Email Sending binding (2026-10-25)
+- **Upload safety** - Image uploads limited to JPEG, PNG, GIF and WebP (checked by file signature), with EXIF metadata stripped and large images downscaled (2026-10-25)
+- **Fixes** - Restored the comment posting endpoint, fixed TypeScript and build errors, and made post links work on Pages (2026-10-25)
+- **Interface** - Log Out button, header tooltips, clearer post editor and registration messages (2026-10-25)
+- **Category requests** - Logged-in users can request a new category (2026-10-25)
+- **Branding** - Renamed from CForum to Felting Forum (2026-10-25 to 2026-10-26)
+- **About / Legal page** - Footer link to an About / Legal page with the license notice and a link to this source code (2026-10-26)
+- **Styling** - Light and dark themes, serif headings and link colors to match [felting.com](https://felting.com) (2026-10-26)
+
+For the complete, dated list of changes, see the [commit history](https://github.com/johnwmgo/cforum-source/commits/main). Every commit after `1f80425` is a modification.
+
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE)
+GNU Affero General Public License v3.0 - see [LICENSE](LICENSE)
 
 ## 🙋 Support
 
