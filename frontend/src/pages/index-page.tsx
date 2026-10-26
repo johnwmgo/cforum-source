@@ -524,7 +524,7 @@ export function IndexPage() {
 				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 					<div>
 							<h1 className="text-2xl font-semibold tracking-tight">CForum</h1>
-						<p className="text-sm text-muted-foreground">Powered by Cloudflare Workers, Pages, D1 and R2.</p>
+						<p className="text-sm text-muted-foreground">Powered by Cloudflare</p>
 					</div>
 					<div className="flex items-center gap-2">
 						<label className="text-sm text-muted-foreground" htmlFor="category-filter">
