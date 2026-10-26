@@ -13,6 +13,7 @@ import { apiFetch, formatDate, getSecurityHeaders, type Category, type Post } fr
 import { getToken, getUser } from '@/lib/auth';
 import { attachFancybox, highlightCodeBlocks, renderMarkdownToHtml } from '@/lib/markdown';
 import { validateText } from '@/lib/validators';
+import { prepareImageForUpload } from '@/lib/image';
 
 export function IndexPage() {
 	const { config } = useConfig();
@@ -687,21 +688,16 @@ export function IndexPage() {
 			<label className="block text-sm font-medium text-muted-foreground">Upload Image</label>
 			<input
 				type="file"
-				accept="image/*"
+				accept="image/jpeg,image/png,image/gif,image/webp"
 				className="block w-full text-sm"
 				onChange={async (e) => {
 					const file = e.target.files && e.target.files[0];
 					if (!file) return;
 					setUploadError('');
-					// allow up to 2MB
-					if (file.size > 2 * 1024 * 1024) {
-						setUploadError('File is too large (max 2MB)');
-						return;
-					}
 					setUploadLoading(true);
 					try {
 						const formData = new FormData();
-						formData.append('file', file);
+						formData.append('file', await prepareImageForUpload(file, 'post'));
 						formData.append('type', 'post');
 						const res = await fetch('/api/upload', {
 							method: 'POST',

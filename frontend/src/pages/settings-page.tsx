@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { apiFetch, getSecurityHeaders } from '@/lib/api';
 import { getUser, logout, setUser, type User } from '@/lib/auth';
 import { validateText } from '@/lib/validators';
+import { prepareImageForUpload } from '@/lib/image';
 
 export function SettingsPage() {
 	const [user, setUserState] = React.useState<User | null>(() => getUser());
@@ -75,15 +76,12 @@ export function SettingsPage() {
 	async function uploadAvatar(file: File) {
 		if (!user) return;
 		setError('');
-		// allow larger avatar images (2MB)
-		if (file.size > 2 * 1024 * 1024) return setError('File is too large (max 2MB)');
-
-		const formData = new FormData();
-		formData.append('file', file);
-		formData.append('type', 'avatar');
-
 		setLoading(true);
 		try {
+			const formData = new FormData();
+			formData.append('file', await prepareImageForUpload(file, 'avatar'));
+			formData.append('type', 'avatar');
+
 			const res = await fetch('/api/upload', {
 				method: 'POST',
 				headers: getSecurityHeaders('POST', null),
@@ -221,11 +219,11 @@ export function SettingsPage() {
 						</div>
 
 						<div className="space-y-2">
-							<Label htmlFor="avatar-file">Upload avatar (max 500KB)</Label>
+							<Label htmlFor="avatar-file">Upload avatar</Label>
 							<Input
 								id="avatar-file"
 								type="file"
-								accept="image/*"
+								accept="image/jpeg,image/png,image/gif,image/webp"
 								onChange={(e) => {
 									const f = e.target.files?.[0];
 									if (f) uploadAvatar(f);
