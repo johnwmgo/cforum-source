@@ -81,11 +81,12 @@ export function SiteHeader({
 								</a>
 							</Button>
 							<Separator orientation="vertical" className="h-6" />
-							<!-- jwg changed logout button -->
+							{/* jwg changed logout button */}
 							<Button
 								variant="outline"
 								onClick={() => {
 									logout();
+									onLogout?.();
 									window.location.href = '/';
 								}}
 							>
