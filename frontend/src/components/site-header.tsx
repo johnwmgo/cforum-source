@@ -30,13 +30,20 @@ export function SiteHeader({
 			<div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4">
 				<a
 					href="/"
+					title="Home"
 					className="inline-flex items-center justify-center rounded-md border border-transparent p-2 text-foreground hover:bg-muted/40"
 				>
 					<Home className="h-5 w-5" />
 					<span className="sr-only">Home</span>
 				</a>
 				<div className="flex items-center gap-2">
-					<Button type="button" variant="ghost" size="sm" onClick={toggleTheme}>
+					<Button
+						type="button"
+						variant="ghost"
+						size="sm"
+						onClick={toggleTheme}
+						title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+					>
 						{theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
 						<span className="sr-only">Toggle theme</span>
 					</Button>
@@ -60,7 +67,10 @@ export function SiteHeader({
 									Welcome, <span className="text-foreground">{user.username}</span>
 								</span>
 								{user.role === 'admin' ? (
-									<span className="inline-flex items-center gap-1 rounded border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-medium text-indigo-700 dark:text-indigo-300">
+									<span
+										title="Admin"
+										className="inline-flex items-center gap-1 rounded border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-medium text-indigo-700 dark:text-indigo-300"
+									>
 										<Shield className="h-3 w-3" />
 										<span className="sr-only">Admin</span>
 									</span>
@@ -68,14 +78,14 @@ export function SiteHeader({
 							</span>
 							{user.role === 'admin' ? (
 								<Button asChild variant="ghost" size="sm">
-									<a href="/admin">
+									<a href="/admin" title="Admin Panel">
 										<Shield className="h-4 w-4" />
 										<span className="sr-only">Admin Panel</span>
 									</a>
 								</Button>
 							) : null}
 							<Button asChild variant="ghost" size="sm">
-								<a href="/settings">
+								<a href="/settings" title="Settings">
 									<Settings className="h-4 w-4" />
 									<span className="sr-only">Settings</span>
 								</a>
@@ -96,13 +106,13 @@ export function SiteHeader({
 					) : (
 						<>
 							<Button asChild variant="ghost" size="sm">
-								<a href="/login">
+								<a href="/login" title="Log in">
 									<LogIn className="h-4 w-4" />
 									<span className="sr-only">Log in</span>
 								</a>
 							</Button>
 							<Button asChild size="sm">
-								<a href="/register">
+								<a href="/register" title="Register">
 									<UserPlus className="h-4 w-4" />
 									<span className="sr-only">Register</span>
 								</a>
