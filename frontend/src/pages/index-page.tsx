@@ -523,7 +523,7 @@ export function IndexPage() {
 				{banner ? <div className="rounded-md border bg-muted/40 p-3 text-sm">{banner}</div> : null}
 				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 					<div>
-							<h1 className="text-2xl font-semibold tracking-tight">CForum</h1>
+							<h1 className="text-2xl font-semibold tracking-tight">Felting Forum</h1>
 						<p className="text-sm text-muted-foreground">Powered by Cloudflare</p>
 					</div>
 					<div className="flex items-center gap-2">
