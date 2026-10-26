@@ -9,6 +9,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: github.repository == 'johnwmgo/cforum'
     name: Deploy Pages + Workers
     steps:
       - name: Checkout code

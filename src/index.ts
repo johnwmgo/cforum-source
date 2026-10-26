@@ -2071,6 +2071,7 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change
 				pathname === '/admin' ? '/admin.html' :
 				pathname === '/post' ? '/post.html' :
 				pathname === '/request-category' ? '/request-category.html' :
+				pathname === '/about' ? '/about.html' :
 				pathname;
 
 			const assetUrl = new URL(request.url);
