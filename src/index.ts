@@ -1763,6 +1763,107 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change
 			}
 		}
 
+		// POST /api/posts/:id/comments
+		if (url.pathname.match(/^\/api\/posts\/\d+\/comments$/) && method === 'POST') {
+			const postId = url.pathname.split('/')[3];
+			try {
+				const userPayload = await authenticate(request);
+				const body = await request.json() as any;
+
+				// Turnstile Check
+				const ip = request.headers.get('CF-Connecting-IP') || '127.0.0.1';
+				if (!(await checkTurnstile(body, ip))) {
+					return jsonResponse({ error: 'Turnstile verification failed' }, 403);
+				}
+
+				let { content, parent_id } = body;
+
+				if (!content || typeof content !== 'string') return jsonResponse({ error: 'Missing parameters' }, 400);
+
+				// --- Input Sanitization & Validation (Sync with Frontend) ---
+				if (isVisuallyEmpty(content)) return jsonResponse({ error: 'Comment cannot be empty' }, 400);
+				if (hasInvisibleCharacters(content)) return jsonResponse({ error: 'Comment contains invalid invisible characters' }, 400);
+				if (content.length > 3000) return jsonResponse({ error: 'Comment too long (Max 3000 chars)' }, 400);
+				if (hasControlCharacters(content)) return jsonResponse({ error: 'Comment contains invalid control characters' }, 400);
+
+				// HTML Escape Content (Backend Enforcement)
+				content = content
+					.replace(/&/g, '&amp;')
+					.replace(/</g, '&lt;')
+					.replace(/>/g, '&gt;')
+					.replace(/"/g, '&quot;')
+					.replace(/'/g, '&#039;');
+
+				const post = await env.cforum_db.prepare(
+					'SELECT posts.title, users.id as author_id, users.email, users.email_notifications, users.username FROM posts JOIN users ON posts.author_id = users.id WHERE posts.id = ?'
+				).bind(postId).first<PostAuthorInfo>();
+				if (!post) return jsonResponse({ error: 'Post not found' }, 404);
+
+				// "Reply to Reply" Logic: Flatten to Level 2 with @Mention
+				let notifyUserId: number | null = null; // Who was replied to, for notifications
+				if (parent_id) {
+					const parent = await env.cforum_db.prepare(
+						'SELECT parent_id, author_id FROM comments WHERE id = ? AND post_id = ?'
+					).bind(parent_id, postId).first<{ parent_id: number | null; author_id: number }>();
+					if (!parent) return jsonResponse({ error: 'Parent comment not found' }, 404);
+
+					if (parent.parent_id !== null) {
+						// Level 3 attempt: mention the target user and attach to the shared Level 1 parent
+						const targetUser = await env.cforum_db.prepare('SELECT username FROM users WHERE id = ?').bind(parent.author_id).first<{ username: string }>();
+						content = `@${targetUser ? targetUser.username : ''} ${content}`;
+						parent_id = parent.parent_id;
+					}
+					notifyUserId = parent.author_id;
+				}
+
+				const { success } = await env.cforum_db.prepare(
+					'INSERT INTO comments (post_id, author_id, content, parent_id) VALUES (?, ?, ?, ?)'
+				).bind(postId, userPayload.id, content, parent_id || null).run();
+
+				await security.logAudit(userPayload.id, 'CREATE_COMMENT', 'comment', 'new', { postId, parent_id }, request);
+
+				// Email Notification Logic
+				if (success) {
+					const commenter = await env.cforum_db.prepare('SELECT username FROM users WHERE id = ?').bind(userPayload.id).first<{ username: string }>();
+					const commenterName = commenter ? commenter.username : 'Unknown';
+					const postUrl = `${getBaseUrl()}/post?id=${postId}`;
+
+					// 1. Notify Post Author (if not self)
+					if (post.author_id !== userPayload.id && post.email_notifications === 1) {
+						const emailHtml = `
+							<h1>New Comment on your post</h1>
+							<p><strong>${commenterName}</strong> commented on your post "<strong>${post.title}</strong>":</p>
+							<blockquote>${content}</blockquote>
+							<p><a href="${postUrl}">View Comment</a></p>
+							<p style="font-size:0.8em;color:#666;">You received this email because you are subscribed to notifications.</p>
+						`;
+						ctx.waitUntil(sendEmail(post.email, `New comment on: ${post.title}`, emailHtml, env).catch(console.error));
+					}
+
+					// 2. Notify Parent Comment Author (skip self, and post author who was already notified)
+					if (notifyUserId && notifyUserId !== userPayload.id && notifyUserId !== post.author_id) {
+						const parentCommentUser = await env.cforum_db.prepare(
+							'SELECT email, email_notifications FROM users WHERE id = ?'
+						).bind(notifyUserId).first<{ email: string; email_notifications: number }>();
+						if (parentCommentUser && parentCommentUser.email_notifications === 1) {
+							const replyHtml = `
+								<h1>New Reply to your comment</h1>
+								<p><strong>${commenterName}</strong> replied to your comment on "<strong>${post.title}</strong>":</p>
+								<blockquote>${content}</blockquote>
+								<p><a href="${postUrl}">View Reply</a></p>
+								<p style="font-size:0.8em;color:#666;">You received this email because you are subscribed to notifications.</p>
+							`;
+							ctx.waitUntil(sendEmail(parentCommentUser.email, 'New reply to your comment', replyHtml, env).catch(console.error));
+						}
+					}
+				}
+
+				return jsonResponse({ success }, 201);
+			} catch (e) {
+				return handleError(e);
+			}
+		}
+
 		// DELETE /api/comments/:id
 		if (url.pathname.match(/^\/api\/comments\/\d+$/) && method === 'DELETE') {
 			const id = url.pathname.split('/').pop();

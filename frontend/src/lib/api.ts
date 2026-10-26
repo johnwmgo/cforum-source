@@ -64,7 +64,14 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
 		throw new Error('Session expired, please log in again');
 	}
 	const text = await res.text();
-	const data = text ? (JSON.parse(text) as any) : null;
+	let data: any = null;
+	if (text) {
+		try {
+			data = JSON.parse(text);
+		} catch {
+			throw new Error(res.ok ? 'Invalid response from server' : `Request failed (${res.status}): ${text.slice(0, 100)}`);
+		}
+	}
 	if (!res.ok) {
 		throw new Error(data?.error || `Request failed (${res.status})`);
 	}
