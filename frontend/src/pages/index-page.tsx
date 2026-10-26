@@ -770,13 +770,15 @@ export function IndexPage() {
 									<CardContent className="py-5">
 										<div className="flex gap-4">
 											{coverUrl ? (
-												<img
-													src={coverUrl}
-													alt=""
-													className="h-20 w-28 shrink-0 rounded-md object-cover"
-													loading="lazy"
-													referrerPolicy="no-referrer"
-												/>
+												<a href={`/post?id=${p.id}`} className="shrink-0">
+													<img
+														src={coverUrl}
+														alt=""
+														className="h-20 w-28 rounded-md object-cover"
+														loading="lazy"
+														referrerPolicy="no-referrer"
+													/>
+												</a>
 											) : null}
 											<div className="min-w-0 flex-1 space-y-1">
 												<div className="flex items-start justify-between gap-2">
@@ -787,7 +789,7 @@ export function IndexPage() {
 																Pinned
 															</span>
 														) : null}
-														<a className="truncate text-lg font-semibold hover:underline" href={`/posts/${p.id}`}>
+														<a className="truncate text-lg font-semibold hover:underline" href={`/post?id=${p.id}`}>
 															{p.title}
 														</a>
 													</div>
