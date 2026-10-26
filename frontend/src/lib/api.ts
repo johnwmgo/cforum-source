@@ -74,7 +74,7 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
 export function formatDate(dateString: string | null | undefined) {
 	if (!dateString) return '';
 	const date = new Date(dateString.endsWith('Z') ? dateString : `${dateString}Z`);
-	return date.toLocaleString('zh-CN', {
+	return date.toLocaleString('en-US', {
 		year: 'numeric',
 		month: 'short',
 		day: 'numeric',
