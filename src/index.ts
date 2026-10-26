@@ -1027,6 +1027,48 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change
 			}
 		}
 
+		// POST /api/categories/request - email support asking for a new category
+		if (url.pathname === '/api/categories/request' && method === 'POST') {
+			try {
+				const userPayload = await authenticate(request);
+				const body = await request.json() as any;
+				const name = typeof body.name === 'string' ? body.name.trim() : '';
+				const reason = typeof body.reason === 'string' ? body.reason.trim() : '';
+
+				if (isVisuallyEmpty(name)) return jsonResponse({ error: 'Category name cannot be empty' }, 400);
+				if (name.length > 50) return jsonResponse({ error: 'Category name too long (Max 50 chars)' }, 400);
+				// The name goes into the email subject, so it must stay on one line
+				if (/[\r\n]/.test(name)) return jsonResponse({ error: 'Category name must be a single line' }, 400);
+				if (reason.length > 1000) return jsonResponse({ error: 'Reason too long (Max 1000 chars)' }, 400);
+				if (hasInvisibleCharacters(name) || hasInvisibleCharacters(reason)) return jsonResponse({ error: 'Request contains invalid invisible characters' }, 400);
+				if (hasControlCharacters(name) || hasControlCharacters(reason)) return jsonResponse({ error: 'Request contains invalid control characters' }, 400);
+
+				const user = await env.cforum_db.prepare('SELECT username, email FROM users WHERE id = ?').bind(userPayload.id).first<{ username: string; email: string }>();
+				if (!user) return jsonResponse({ error: 'Unauthorized' }, 401);
+
+				const escape = (s: string) => s
+					.replace(/&/g, '&amp;')
+					.replace(/</g, '&lt;')
+					.replace(/>/g, '&gt;')
+					.replace(/"/g, '&quot;')
+					.replace(/'/g, '&#039;');
+
+				const emailHtml = `
+					<h1>New Category Request</h1>
+					<p><strong>Requested category:</strong> ${escape(name)}</p>
+					<p><strong>Requested by:</strong> ${escape(user.username)} (${escape(user.email)})</p>
+					<p><strong>Reason:</strong></p>
+					<p>${reason ? escape(reason).replace(/\n/g, '<br>') : '<em>None given</em>'}</p>
+				`;
+
+				await sendEmail('support@felting.com', `Category request: ${name}`, emailHtml, env);
+				await security.logAudit(userPayload.id, 'REQUEST_CATEGORY', 'category', 'new', { name }, request);
+				return jsonResponse({ success: true });
+			} catch (e) {
+				return handleError(e);
+			}
+		}
+
 		// POST /api/admin/categories
 		if (url.pathname === '/api/admin/categories' && method === 'POST') {
 			try {
@@ -2028,6 +2070,7 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change
 				pathname === '/settings' ? '/settings.html' :
 				pathname === '/admin' ? '/admin.html' :
 				pathname === '/post' ? '/post.html' :
+				pathname === '/request-category' ? '/request-category.html' :
 				pathname;
 
 			const assetUrl = new URL(request.url);

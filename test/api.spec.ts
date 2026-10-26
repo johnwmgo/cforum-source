@@ -158,6 +158,24 @@ describe('posts', () => {
 	});
 });
 
+// Only the rejection paths are tested: a valid request sends a real email to support
+describe('category requests', () => {
+	it('requires login', async () => {
+		const { status } = await api('/categories/request', { method: 'POST', body: { name: 'Needle felting' } });
+		expect(status).toBe(401);
+	});
+
+	it('rejects an empty name', async () => {
+		const { status } = await api('/categories/request', { method: 'POST', token: aliceToken, body: { name: '   ' } });
+		expect(status).toBe(400);
+	});
+
+	it('rejects a multi-line name', async () => {
+		const { status } = await api('/categories/request', { method: 'POST', token: aliceToken, body: { name: 'Wet\nBcc: x@y.z' } });
+		expect(status).toBe(400);
+	});
+});
+
 describe('comments', () => {
 	let postId: number;
 

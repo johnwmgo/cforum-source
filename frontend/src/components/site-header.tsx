@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { getUser, logout, type User } from '@/lib/auth';
 import { getTheme, toggleTheme, type Theme } from '@/lib/theme';
-import { Home, LogIn, LogOut, Moon, Settings, Shield, Sun, User as UserIcon, UserPlus } from 'lucide-react';
+import { FolderPlus, Home, LogIn, LogOut, Moon, Settings, Shield, Sun, User as UserIcon, UserPlus } from 'lucide-react';
 
 export function SiteHeader({
 	currentUser,
@@ -84,6 +84,12 @@ export function SiteHeader({
 									</a>
 								</Button>
 							) : null}
+							<Button asChild variant="ghost" size="sm">
+								<a href="/request-category" title="Request a Category">
+									<FolderPlus className="h-4 w-4" />
+									<span className="sr-only">Request a Category</span>
+								</a>
+							</Button>
 							<Button asChild variant="ghost" size="sm">
 								<a href="/settings" title="Settings">
 									<Settings className="h-4 w-4" />

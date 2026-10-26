@@ -26,7 +26,8 @@ export default defineConfig({
 				reset: path.resolve(__dirname, 'pages', 'reset.html'),
 				post: path.resolve(__dirname, 'pages', 'post.html'),
 				settings: path.resolve(__dirname, 'pages', 'settings.html'),
-				admin: path.resolve(__dirname, 'pages', 'admin.html')
+				admin: path.resolve(__dirname, 'pages', 'admin.html'),
+				'request-category': path.resolve(__dirname, 'pages', 'request-category.html')
 			}
 		}
 	},
