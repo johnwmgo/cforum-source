@@ -122,7 +122,7 @@ export function RegisterPage() {
 
 							<div className="text-sm">
 								<a className="text-muted-foreground hover:underline" href="/login">
-									Already have an account? Log in
+									<b>Already have an account? Log in</b>
 								</a>
 							</div>
 						</form>
