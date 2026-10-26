@@ -620,7 +620,7 @@ export function IndexPage() {
 						</CardHeader>
 						<CardContent>
 							{!createOpen ? (
-								<div className="text-sm text-muted-foreground">Click the down-arrow {**v**} button to open the editor.</div>
+								<div className="text-sm text-muted-foreground">Click the down-arrow <b>v</b> button to open the editor.</div>
 							) : (
 								<form className="space-y-4" onSubmit={createPost}>
 								{createError ? <div className="rounded-md border border-destructive/50 bg-destructive/5 p-3 text-sm text-destructive">{createError}</div> : null}
