@@ -1,7 +1,7 @@
 
 import { sendEmail } from './smtp';
 import { generateIdenticon } from './identicon';
-import { uploadImage, deleteImage, listAllKeys, getPublicUrl, getKeyFromUrl, S3Env } from './s3';
+import { uploadImage, deleteImage, listAllKeys, getPublicUrl, getKeyFromUrl, detectImageType, S3Env } from './s3';
 import * as OTPAuth from 'otpauth';
 import { Security, UserPayload } from './security';
 
@@ -160,6 +160,9 @@ export default {
 			object.writeHttpMetadata(headers);
 			if (object.httpEtag) headers.set('etag', object.httpEtag);
 			headers.set('Cache-Control', 'public, max-age=3600');
+			// Never let a stored file run as a page on this origin (covers SVGs uploaded before the type allowlist)
+			headers.set('X-Content-Type-Options', 'nosniff');
+			headers.set('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; sandbox");
 			return new Response(method === 'HEAD' ? null : object.body, { headers });
 		}
 
@@ -445,17 +448,21 @@ export default {
 					return jsonResponse({ error: 'No file uploaded' }, 400);
 				}
 
-				if (!file.type.startsWith('image/')) {
-					return jsonResponse({ error: 'Only images are allowed' }, 400);
-				}
-
 // Check file size (2MB = 2 * 1024 * 1024 bytes)
 			const MAX_SIZE = 2 * 1024 * 1024;
 			if (file.size > MAX_SIZE) {
 				return jsonResponse({ error: 'File size too large (Max 2MB)' }, 400);
 				}
 
-				const imageKey = await uploadImage(env as unknown as S3Env, file, userId, postId.toString(), type as 'post' | 'avatar');
+				// Only JPEG, PNG, GIF and WebP; SVG is excluded because it can carry scripts
+				const buffer = await file.arrayBuffer();
+				const imageType = detectImageType(new Uint8Array(buffer, 0, Math.min(buffer.byteLength, 16)));
+				if (!imageType) {
+					return jsonResponse({ error: 'Only JPEG, PNG, GIF and WebP images are allowed' }, 400);
+				}
+				const imageFile = new File([buffer], file.name, { type: imageType });
+
+				const imageKey = await uploadImage(env as unknown as S3Env, imageFile, userId, postId.toString(), type as 'post' | 'avatar');
 			const publicBase = (env as any).BUCKET ? `${getBaseUrl()}/r2` : undefined;
 			const imageUrl = getPublicUrl(env as unknown as S3Env, imageKey, publicBase);
 				return jsonResponse({ success: true, url: imageUrl });
