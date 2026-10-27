@@ -14,6 +14,9 @@ export function AboutPage() {
 					</CardHeader>
 					<CardContent>
 						<p className="text-base leading-relaxed">
+							This forum is for use by users of felting.com to communicate about all things "felting". This forum was created in late October of 2026.
+						</p>
+						<p className="text-base leading-relaxed">
 							This website utilizes a modified version of{' '}
 							<a className="underline underline-offset-4" href="https://github.com/adysec/CForum" target="_blank" rel="noreferrer">
 								adysec/CForum
