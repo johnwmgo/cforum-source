@@ -10,7 +10,7 @@ A forum built on Cloudflare Workers + Pages + D1 + R2, with support for posts, c
 
 ### Single domain + smart gateway
 
-```
+```text
 User visits: forum.adysec.com
          ↓
     Cloudflare Pages (Edge network)
@@ -65,7 +65,8 @@ The project includes `.github/workflows/deploy.yml`, which automatically builds 
    - **Account > Pages** - Edit
 5. Select your account and click **Continue to summary**
 6. After creating it, copy the token (it is only shown once)
-<img width="1778" height="506" alt="Screenshot" src="https://github.com/user-attachments/assets/0f7f179b-d2a9-4f3b-8981-f736d294898a" />
+
+![Screenshot](https://github.com/user-attachments/assets/0f7f179b-d2a9-4f3b-8981-f736d294898a)
 
 #### Step 2: Get your Account ID
 
@@ -75,11 +76,12 @@ The project includes `.github/workflows/deploy.yml`, which automatically builds 
 #### Step 3: Configure GitHub Secrets
 
 In your GitHub repository:
+
 1. Go to **Settings > Secrets and variables > Actions**
 2. Click **New repository secret** and add the following secrets:
 
 | Secret name | Value | Description | Required |
-|-----------|----|----|----|
+| --- | --- | --- | --- |
 | `CF_API_TOKEN` | Cloudflare API Token | [Create CF_API_TOKEN](https://dash.cloudflare.com/profile/api-tokens) | Required |
 | `CF_ACCOUNT_ID` | Your Cloudflare Account ID | [Find CF_ACCOUNT_ID](https://dash.cloudflare.com/caching/overview) | Required |
 | `JWT_SECRET` | Random string | `head -c 32 /dev/urandom \| base64` | Required |
@@ -87,16 +89,18 @@ In your GitHub repository:
 | `SMTP_PORT` | SMTP port | e.g. 465 | Optional; registration won't work without it |
 | `SMTP_USER` | SMTP username | Email address | Optional; registration won't work without it |
 | `SMTP_PASS` | SMTP password | App-specific password (not your main password) | Optional; registration won't work without it |
-| `SMTP_FROM` | Sender email | e.g. noreply@example.com (defaults to SMTP_USER) | Optional; registration won't work without it |
+| `SMTP_FROM` | Sender email | e.g. `noreply@example.com` (defaults to SMTP_USER) | Optional; registration won't work without it |
 | `SMTP_FROM_NAME` | Sender display name | e.g. CForum (defaults to "Forum Admin") | Optional; registration won't work without it |
 | `BASE_URL` | Site URL | e.g. `https://forum.adysec.com` (defaults to the current request's domain) | Optional; email links may break without it |
 | `TURNSTILE_SITE_KEY` | Cloudflare Turnstile Site Key | [Cloudflare Turnstile](https://dash.cloudflare.com/?to=/:account/turnstile) | Optional; Turnstile is disabled without it |
 | `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile Secret | [Cloudflare Turnstile](https://dash.cloudflare.com/?to=/:account/turnstile) | Optional; Turnstile is disabled without it |
-<img width="2244" height="1350" alt="Screenshot" src="https://github.com/user-attachments/assets/77b109a9-ebb6-4e9d-a660-0828e28c5bd1" />
+
+![Screenshot](https://github.com/user-attachments/assets/77b109a9-ebb6-4e9d-a660-0828e28c5bd1)
 
 #### Step 4: Trigger a deployment manually
 
 On your GitHub repository's **Actions** page:
+
 1. Select the **Deploy to Cloudflare** workflow
 2. Click **Run workflow**
 3. Select the `main` branch and confirm
@@ -109,7 +113,7 @@ On your GitHub repository's **Actions** page:
 
 CForum uses a **hybrid Pages + Worker architecture with a single entry point through Pages Functions**:
 
-```
+```text
 User visits: https://forum.adysec.com
     ↓
 Cloudflare Pages CDN (smart routing)
@@ -118,6 +122,7 @@ Cloudflare Pages CDN (smart routing)
 ```
 
 **Benefits**:
+
 - ✅ Users only need one domain
 - ✅ Fully automated — no need to configure a Worker domain manually
 - ✅ Pages hosts static assets (free)
@@ -131,6 +136,7 @@ Cloudflare Pages CDN (smart routing)
 4. Complete verification ✅
 
 **Default admin account** (change it immediately after first login!):
+
 - Email: `admin@adysec.com` / Password: `Admin@123`
 
 ## 🔧 Modifications
@@ -149,6 +155,11 @@ Main changes from the original:
 - **Branding** - Renamed from CForum to Felting Forum (2026-10-25 to 2026-10-26)
 - **About / Legal page** - Footer link to an About / Legal page with the license notice and a link to this source code (2026-10-26)
 - **Styling** - Light and dark themes, serif headings and link colors to match [felting.com](https://felting.com) (2026-10-26)
+- **About page** - Explains how the forum relates to felting.com and its users (2026-10-26)
+- **Local development** - `npm run dev` serves the built pages and sets the email sender address (2026-10-26)
+- **Profile fix** - Users whose names contain a restricted word (such as "Admin") can save their profile again; the check now applies only when the username changes (2026-10-28)
+- **Post previews** - The post listing shows about a paragraph of each post's content, with Show more / Show less to expand the full post in place (2026-10-28)
+- **README formatting** - Fixed Markdown style warnings (code block languages, blank lines around lists and tables, Markdown images instead of HTML) (2026-10-28)
 
 For the complete, dated list of changes, see the [commit history](https://github.com/johnwmgo/cforum-source/commits/main). Every commit after `1f80425` is a modification.
 
