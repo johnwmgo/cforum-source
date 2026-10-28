@@ -108,6 +108,23 @@ export function PostPage() {
 		refresh();
 	}, [refresh]);
 
+	// Open the editor straight away when linked with ?edit=1 (e.g. from the post listing)
+	const autoEditRef = React.useRef(new URLSearchParams(window.location.search).get('edit') === '1');
+	React.useEffect(() => {
+		if (!post || !autoEditRef.current) return;
+		autoEditRef.current = false;
+		if (user && (user.role === 'admin' || user.id === post.author_id)) setIsEditing(true);
+	}, [post, user]);
+
+	function toggleEditing() {
+		if (isEditing && post) {
+			setEditTitle(post.title);
+			setEditContent(post.content);
+			setEditError('');
+		}
+		setIsEditing((v) => !v);
+	}
+
 	React.useEffect(() => {
 		void apiFetch<Category[]>('/categories')
 			.then((list) => setAllCategories(Array.isArray(list) ? list : []))
@@ -384,9 +401,9 @@ export function PostPage() {
 
 									{user && (user.role === 'admin' || user.id === post.author_id) ? (
 										<>
-											<Button variant="outline" size="sm" onClick={() => setIsEditing((v) => !v)}>
+											<Button variant="outline" size="sm" onClick={toggleEditing}>
 												{isEditing ? <X className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-												<span className="sr-only">{isEditing ? 'Cancel editing' : 'Edit'}</span>
+												{isEditing ? 'Cancel' : 'Edit'}
 											</Button>
 										</>
 									) : null}

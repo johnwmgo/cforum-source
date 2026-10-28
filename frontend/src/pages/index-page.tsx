@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Eye, EyeOff, Heart, MessageCircle, MoreVertical, Pin, RefreshCw, Search, Shield, Trash2, User, X } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Eye, EyeOff, Heart, MessageCircle, MoreVertical, Pencil, Pin, RefreshCw, Search, Shield, Trash2, User, X } from 'lucide-react';
 
 import { TurnstileWidget } from '@/components/turnstile';
 import { PageShell } from '@/components/page-shell';
@@ -968,6 +968,15 @@ export function IndexPage() {
 														<Eye className="h-4 w-4 text-emerald-600" />
 														{p.view_count || 0}
 													</span>
+													{user && (isAdmin || user.id === p.author_id) ? (
+														<a
+															href={`/post?id=${p.id}&edit=1`}
+															className="inline-flex items-center gap-1 text-[#34457a] hover:underline dark:text-[#a9b8f2]"
+														>
+															<Pencil className="h-4 w-4" />
+															Edit
+														</a>
+													) : null}
 												</div>
 											</div>
 										</div>
