@@ -15,6 +15,68 @@ import { attachFancybox, highlightCodeBlocks, renderMarkdownToHtml } from '@/lib
 import { validateText } from '@/lib/validators';
 import { prepareImageForUpload } from '@/lib/image';
 
+// Renders a post's content clipped to roughly a paragraph, with an inline toggle to expand it.
+// Images are hidden while collapsed (the card already shows the first one as a thumbnail).
+function PostExcerpt({ content }: { content: string }) {
+	const [expanded, setExpanded] = React.useState(false);
+	const [overflowing, setOverflowing] = React.useState(false);
+	const ref = React.useRef<HTMLDivElement | null>(null);
+	const html = React.useMemo(() => renderMarkdownToHtml(content), [content]);
+	const hasImages = /<img\b/i.test(html);
+
+	React.useEffect(() => {
+		highlightCodeBlocks(ref.current);
+	}, [html]);
+
+	React.useEffect(() => {
+		const el = ref.current;
+		if (!el || expanded) return;
+		const measure = () => setOverflowing(el.scrollHeight > el.clientHeight + 1);
+		measure();
+		const observer = new ResizeObserver(measure);
+		observer.observe(el);
+		return () => observer.disconnect();
+	}, [html, expanded]);
+
+	React.useEffect(() => {
+		if (!expanded) return;
+		return attachFancybox(ref.current);
+	}, [expanded]);
+
+	const canToggle = expanded || overflowing || hasImages;
+
+	return (
+		<div className="pt-1">
+			<div
+				ref={ref}
+				className={
+					'prose max-w-none break-words text-sm [&>*:first-child]:mt-0 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 ' +
+					(expanded ? '' : 'max-h-28 overflow-hidden [&_img]:hidden ' + (overflowing ? '[mask-image:linear-gradient(to_bottom,black_55%,transparent)]' : ''))
+				}
+				dangerouslySetInnerHTML={{ __html: html }}
+			/>
+			{canToggle ? (
+				<button
+					type="button"
+					className="mt-1 inline-flex items-center gap-1 text-sm font-medium text-[#34457a] hover:underline dark:text-[#a9b8f2]"
+					onClick={() => setExpanded((v) => !v)}
+					aria-expanded={expanded}
+				>
+					{expanded ? (
+						<>
+							Show less <ChevronUp className="h-4 w-4" />
+						</>
+					) : (
+						<>
+							Show more <ChevronDown className="h-4 w-4" />
+						</>
+					)}
+				</button>
+			) : null}
+		</div>
+	);
+}
+
 export function IndexPage() {
 	const { config } = useConfig();
 	const token = getToken();
@@ -892,6 +954,7 @@ export function IndexPage() {
 													<span>·</span>
 													<span className="whitespace-nowrap">{formatDate(p.created_at)}</span>
 												</div>
+												{p.content ? <PostExcerpt content={p.content} /> : null}
 												<div className="flex items-center gap-4 text-xs text-muted-foreground">
 													<span className="inline-flex items-center gap-1">
 														<Heart className="h-4 w-4 text-rose-600" />
