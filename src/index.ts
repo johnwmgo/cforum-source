@@ -572,7 +572,13 @@ export default {
 				
 				const user_id = userPayload.id;
 
-				if (username) {
+				// Fetch current user
+				const currentUser = await env.cforum_db.prepare('SELECT * FROM users WHERE id = ?').bind(user_id).first<DBUser>();
+				if (!currentUser) return jsonResponse({ error: 'User not found' }, 404);
+
+				// Only validate the username when it is actually being changed, so existing
+				// names (e.g. "Admin") don't block saving other profile fields.
+				if (username && username !== currentUser.username) {
 					if (username.length > 20) return jsonResponse({ error: 'Username too long (Max 20 chars)' }, 400);
 					if (isVisuallyEmpty(username)) return jsonResponse({ error: 'Username cannot be empty' }, 400);
 					if (hasInvisibleCharacters(username)) return jsonResponse({ error: 'Username contains invalid invisible characters' }, 400);
@@ -585,11 +591,6 @@ export default {
 						return jsonResponse({ error: 'Username already taken' }, 409);
 					}
 				}
-
-				// Fetch current user
-				const currentUser = await env.cforum_db.prepare('SELECT * FROM users WHERE id = ?').bind(user_id).first<DBUser>();
-			if (!currentUser) return jsonResponse({ error: 'User not found' }, 404);
-				if (!currentUser) return jsonResponse({ error: 'User not found' }, 404);
 
 				let newUsername = currentUser.username;
 				if (username !== undefined) {
