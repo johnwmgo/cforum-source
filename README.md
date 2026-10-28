@@ -160,6 +160,7 @@ Main changes from the original:
 - **Profile fix** - Users whose names contain a restricted word (such as "Admin") can save their profile again; the check now applies only when the username changes (2026-10-28)
 - **Post previews** - The post listing shows about a paragraph of each post's content, with Show more / Show less to expand the full post in place (2026-10-28)
 - **README formatting** - Fixed Markdown style warnings (code block languages, blank lines around lists and tables, Markdown images instead of HTML) (2026-10-28)
+- **Post editing** - Labelled Edit button on the post page and an Edit link in the post listing for the post's author, which opens the editor directly; Cancel discards unsaved edits (2026-10-28)
 
 For the complete, dated list of changes, see the [commit history](https://github.com/johnwmgo/cforum-source/commits/main). Every commit after `1f80425` is a modification.
 
