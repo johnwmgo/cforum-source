@@ -386,10 +386,19 @@ export function IndexPage() {
 				const list: Post[] = Array.isArray(data) ? data : (data.posts as Post[]);
 				const total = Array.isArray(data) ? list.length : Number(data.total || 0);
 
+				// Which of these posts the viewer has liked, so the heart can show it
+				let likedIds = new Set<number>();
+				if (getToken()) {
+					try {
+						likedIds = new Set(await apiFetch<number[]>('/user/likes', { headers: getSecurityHeaders('GET') }));
+					} catch {}
+				}
+
 				const processed = list.map((p) => ({
 					...p,
 					like_count: p.like_count || 0,
-					comment_count: p.comment_count || 0
+					comment_count: p.comment_count || 0,
+					liked: likedIds.has(p.id)
 				}));
 
 				setPosts(processed);
@@ -453,6 +462,29 @@ export function IndexPage() {
 		}
 		lastOffsetRef.current = pageOffset;
 	}, [pageOffset, loading]);
+
+	async function toggleLike(post: Post) {
+		if (!user) {
+			window.location.href = '/login';
+			return;
+		}
+		try {
+			const data = await apiFetch<{ liked: boolean }>(`/posts/${post.id}/like`, {
+				method: 'POST',
+				headers: getSecurityHeaders('POST'),
+				body: JSON.stringify({})
+			});
+			setPosts((list) =>
+				list.map((p) =>
+					p.id === post.id
+						? { ...p, liked: data.liked, like_count: Math.max(0, (p.like_count || 0) + (data.liked ? 1 : -1)) }
+						: p
+				)
+			);
+		} catch (e: any) {
+			setError(String(e?.message || e));
+		}
+	}
 
 	async function adminTogglePin(post: Post) {
 		if (!user || user.role !== 'admin') return;
@@ -956,17 +988,30 @@ export function IndexPage() {
 												</div>
 												{p.content ? <PostExcerpt content={p.content} /> : null}
 												<div className="flex items-center gap-4 text-xs text-muted-foreground">
-													<span className="inline-flex items-center gap-1">
-														<Heart className="h-4 w-4 text-rose-600" />
+													<button
+														type="button"
+														className="inline-flex items-center gap-1 rounded hover:text-foreground"
+														onClick={() => void toggleLike(p)}
+														aria-pressed={!!p.liked}
+														title={user ? (p.liked ? 'Unlike' : 'Like') : 'Log in to like'}
+													>
+														<Heart className="h-4 w-4 text-rose-600" fill={p.liked ? 'currentColor' : 'none'} />
 														{p.like_count || 0}
-													</span>
-													<span className="inline-flex items-center gap-1">
+														<span className="sr-only">{p.liked ? 'Unlike' : 'Like'}</span>
+													</button>
+													<a
+														href={`/post?id=${p.id}#comments`}
+														className="inline-flex items-center gap-1 rounded hover:text-foreground"
+														title="Comments"
+													>
 														<MessageCircle className="h-4 w-4 text-sky-600" />
 														{p.comment_count || 0}
-													</span>
-													<span className="inline-flex items-center gap-1">
+														<span className="sr-only">Comments</span>
+													</a>
+													<span className="inline-flex items-center gap-1" title="Views">
 														<Eye className="h-4 w-4 text-emerald-600" />
 														{p.view_count || 0}
+														<span className="sr-only">Views</span>
 													</span>
 													{user && (isAdmin || user.id === p.author_id) ? (
 														<a

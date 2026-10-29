@@ -166,6 +166,7 @@ Main changes from the original:
 - **Security fixes** - Removed the public user list (it exposed every email address); test email endpoint limited to admins; email links only use trusted site addresses; salted PBKDF2 password hashing (old hashes upgrade on next login); current password required to change email; 2FA can't be reset once enabled; password resets and account deletions sign the user out everywhere; admin role checked on every request; HTML escaped in outgoing emails; internal errors hidden from visitors (2026-10-28)
 - **Email change links** - Expire after 24 hours (2026-10-28)
 - **Security headers** - Content-Security-Policy, framing protection and other browser security headers on every page (2026-10-28)
+- **Listing icons** - In the post listing, the heart likes or unlikes a post and shows whether you've liked it, the speech bubble opens the post at its comments, and all three icons have tooltips (2026-10-28)
 
 For the complete, dated list of changes, see the [commit history](https://github.com/johnwmgo/cforum-source/commits/main). Every commit after `1f80425` is a modification.
 

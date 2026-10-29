@@ -108,6 +108,14 @@ export function PostPage() {
 		refresh();
 	}, [refresh]);
 
+	// The comments load after the page, so the browser can't jump to #comments by itself
+	const scrolledToHashRef = React.useRef(false);
+	React.useEffect(() => {
+		if (loading || !post || scrolledToHashRef.current || window.location.hash !== '#comments') return;
+		scrolledToHashRef.current = true;
+		document.getElementById('comments')?.scrollIntoView({ block: 'start' });
+	}, [loading, post]);
+
 	// Open the editor straight away when linked with ?edit=1 (e.g. from the post listing)
 	const autoEditRef = React.useRef(new URLSearchParams(window.location.search).get('edit') === '1');
 	React.useEffect(() => {
@@ -552,7 +560,7 @@ export function PostPage() {
 							</CardContent>
 						</Card>
 
-						<Card>
+						<Card id="comments" className="scroll-mt-4">
 							<CardHeader>
 								<CardTitle>Comments</CardTitle>
 							</CardHeader>
