@@ -24,6 +24,7 @@ export function SettingsPage() {
 
 	const [emailNew, setEmailNew] = React.useState('');
 	const [emailTotp, setEmailTotp] = React.useState('');
+	const [emailPassword, setEmailPassword] = React.useState('');
 
 	const [totpSecret, setTotpSecret] = React.useState('');
 	const [totpUri, setTotpUri] = React.useState('');
@@ -101,15 +102,17 @@ export function SettingsPage() {
 		if (!user) return;
 		setError('');
 		if (!emailNew) return setError('Please enter a new email');
+		if (!emailPassword) return setError('Please enter your current password');
 		setLoading(true);
 		try {
 			await apiFetch('/user/change-email', {
 				method: 'POST',
 				headers: getSecurityHeaders('POST'),
-				body: JSON.stringify({ new_email: emailNew, totp_code: emailTotp })
+				body: JSON.stringify({ new_email: emailNew, password: emailPassword, totp_code: emailTotp })
 			});
 			alert('A verification email has been sent to the new address. Please confirm it there.');
 			setEmailNew('');
+			setEmailPassword('');
 			setEmailTotp('');
 		} catch (e: any) {
 			setError(String(e?.message || e));
@@ -257,6 +260,16 @@ export function SettingsPage() {
 							<div className="space-y-2">
 								<Label htmlFor="email-new">New email address</Label>
 								<Input id="email-new" type="email" value={emailNew} onChange={(e) => setEmailNew(e.target.value)} />
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="email-password">Current password</Label>
+								<Input
+									id="email-password"
+									type="password"
+									autoComplete="current-password"
+									value={emailPassword}
+									onChange={(e) => setEmailPassword(e.target.value)}
+								/>
 							</div>
 							<div className="space-y-2">
 								<Label htmlFor="email-totp">2FA code (if enabled)</Label>

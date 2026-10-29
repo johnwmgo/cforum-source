@@ -56,21 +56,75 @@ function extractImageUrls(content: string): string[] {
 	return urls;
 }
 
-// Utility to hash password
-async function hashPassword(password: string): Promise<string> {
-	const myText = new TextEncoder().encode(password);
-	const myDigest = await crypto.subtle.digest(
-		{
-			name: 'SHA-256',
-		},
-		myText
-	);
-	const hashArray = Array.from(new Uint8Array(myDigest));
-	const hashHex = hashArray
-		.map((b) => b.toString(16).padStart(2, '0'))
-		.join('');
-	return hashHex;
+const toHex = (bytes: Uint8Array) => Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
+const fromHex = (hex: string) => new Uint8Array((hex.match(/.{2}/g) || []).map((b) => parseInt(b, 16)));
+
+// Unsalted SHA-256, used by accounts created before PBKDF2 hashing. Only kept so those
+// passwords still verify; they are re-hashed with PBKDF2 on the next successful login.
+async function legacySha256(password: string): Promise<string> {
+	const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
+	return toHex(new Uint8Array(digest));
 }
+
+// Workers caps PBKDF2 at 100,000 iterations
+const PBKDF2_ITERATIONS = 100000;
+
+async function pbkdf2(password: string, salt: Uint8Array, iterations: number): Promise<Uint8Array> {
+	const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+	const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations }, key, 256);
+	return new Uint8Array(bits);
+}
+
+// Utility to hash password: salted PBKDF2-SHA256, stored as pbkdf2$<iterations>$<salt hex>$<hash hex>
+async function hashPassword(password: string): Promise<string> {
+	const salt = crypto.getRandomValues(new Uint8Array(16));
+	const hash = await pbkdf2(password, salt, PBKDF2_ITERATIONS);
+	return `pbkdf2$${PBKDF2_ITERATIONS}$${toHex(salt)}$${toHex(hash)}`;
+}
+
+function timingSafeEqualHex(a: string, b: string): boolean {
+	if (a.length !== b.length) return false;
+	let diff = 0;
+	for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+	return diff === 0;
+}
+
+// Returns whether the password matches, and whether the stored hash should be upgraded
+async function verifyPassword(password: string, stored: string): Promise<{ ok: boolean; needsRehash: boolean }> {
+	if (!stored) return { ok: false, needsRehash: false };
+	if (stored.startsWith('pbkdf2$')) {
+		const [, iter, saltHex, hashHex] = stored.split('$');
+		const hash = await pbkdf2(password, fromHex(saltHex), Number(iter));
+		return { ok: timingSafeEqualHex(toHex(hash), hashHex), needsRehash: false };
+	}
+	const ok = timingSafeEqualHex(await legacySha256(password), stored);
+	return { ok, needsRehash: ok };
+}
+
+function escapeHtml(s: unknown): string {
+	return String(s ?? '')
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#039;');
+}
+
+// Post titles are stored HTML-escaped when created but not when edited, so normalize before escaping for email
+function escapeTitle(s: unknown): string {
+	const decoded = String(s ?? '')
+		.replace(/&lt;/g, '<')
+		.replace(/&gt;/g, '>')
+		.replace(/&quot;/g, '"')
+		.replace(/&#039;/g, "'")
+		.replace(/&amp;/g, '&');
+	return escapeHtml(decoded);
+}
+
+const EMAIL_CHANGE_TTL_MS = 24 * 60 * 60 * 1000;
+
+// Hosts allowed to appear in links in outgoing emails (via the Pages proxy's X-Original-URL header)
+const TRUSTED_ORIGINS = ['https://forum.felting.com', 'http://localhost:8787', 'http://127.0.0.1:8787'];
 
 function generateToken(): string {
 	return crypto.randomUUID();
@@ -124,8 +178,10 @@ export default {
 				return env.BASE_URL;
 			}
 			
+			// Anyone can send this header straight to the Worker, so only trust known origins;
+			// otherwise password-reset links could be pointed at an attacker's site.
 			const xOriginalUrl = request.headers.get('X-Original-URL');
-			if (xOriginalUrl) {
+			if (xOriginalUrl && TRUSTED_ORIGINS.includes(xOriginalUrl.replace(/\/+$/, ''))) {
 				console.log(`✅ Using X-Original-URL from Pages Functions: ${xOriginalUrl}`);
 				return xOriginalUrl;
 			}
@@ -319,7 +375,9 @@ export default {
 			if (errString.includes('Unauthorized') || errString.includes('Invalid Token')) {
 				return jsonResponse({ error: 'Unauthorized' }, 401);
 			}
-			return jsonResponse({ error: errString }, 500);
+			// Log the detail, but don't reveal internal errors (SQL, storage config) to clients
+			console.error('Unhandled error:', e);
+			return jsonResponse({ error: 'Internal server error' }, 500);
 		};
 
 
@@ -327,7 +385,7 @@ export default {
             '/api/config', '/api/login', '/api/register', '/api/verify', 
             '/api/auth/forgot-password', '/api/auth/reset-password', '/api/verify-email-change',
              // Static/Public GETs
-            '/api/posts', '/api/categories', '/api/users' 
+            '/api/posts', '/api/categories'
         ];
         
         // Relax check for public GETs that don't need nonce
@@ -449,8 +507,10 @@ export default {
 				const formData = await request.formData();
 				const file = formData.get('file');
 				const userId = user.id.toString(); // Use verified user ID
-				const postId = formData.get('post_id') || 'general';
-				const type = formData.get('type') || 'post';
+				// Both go into the storage key, so only allow known shapes
+				const rawPostId = String(formData.get('post_id') || 'general');
+				const postId = /^\d+$/.test(rawPostId) ? rawPostId : 'general';
+				const type = formData.get('type') === 'avatar' ? 'avatar' : 'post';
 
 				if (!file || !(file instanceof File)) {
 					return jsonResponse({ error: 'No file uploaded' }, 400);
@@ -470,7 +530,7 @@ export default {
 				}
 				const imageFile = new File([buffer], file.name, { type: imageType });
 
-				const imageKey = await uploadImage(env as unknown as S3Env, imageFile, userId, postId.toString(), type as 'post' | 'avatar');
+				const imageKey = await uploadImage(env as unknown as S3Env, imageFile, userId, postId, type);
 			const publicBase = (env as any).BUCKET ? `${getBaseUrl()}/r2` : undefined;
 			const imageUrl = getPublicUrl(env as unknown as S3Env, imageKey, publicBase);
 				return jsonResponse({ success: true, url: imageUrl });
@@ -506,13 +566,14 @@ export default {
 					return jsonResponse({ error: 'Username or Password Error' }, 401);
 				}
 
-				if (!user.verified) {
-					return jsonResponse({ error: 'Please verify your email first' }, 403);
+				// Check the password before revealing whether the account is verified
+				const passwordCheck = await verifyPassword(String(password), user.password);
+				if (!passwordCheck.ok) {
+					return jsonResponse({ error: 'Username or Password Error' }, 401);
 				}
 
-				const passwordHash = await hashPassword(password);
-				if (user.password !== passwordHash) {
-					return jsonResponse({ error: 'Username or Password Error' }, 401);
+				if (!user.verified) {
+					return jsonResponse({ error: 'Please verify your email first' }, 403);
 				}
 
 				// TOTP Check
@@ -535,6 +596,11 @@ export default {
 					if (delta === null) {
 						return jsonResponse({ error: 'Invalid TOTP code' }, 401);
 					}
+				}
+
+				// Upgrade legacy unsalted hashes now that we know the password
+				if (passwordCheck.needsRehash) {
+					await env.cforum_db.prepare('UPDATE users SET password = ? WHERE id = ?').bind(await hashPassword(String(password)), user.id).run();
 				}
 
 				const { token, jti, expiresAt } = await security.generateToken({
@@ -651,8 +717,7 @@ export default {
 				if (!user) return jsonResponse({ error: 'User not found' }, 404);
 
 				// Verify Password (Double check for sensitive delete op)
-				const passwordHash = await hashPassword(password);
-				if (user.password !== passwordHash) {
+				if (!(await verifyPassword(String(password), user.password)).ok) {
 					return jsonResponse({ error: 'Invalid password' }, 401);
 				}
 
@@ -702,6 +767,7 @@ export default {
 				
 				// 4. Delete posts and user
 				await env.cforum_db.prepare('DELETE FROM posts WHERE author_id = ?').bind(user_id).run();
+				await env.cforum_db.prepare('DELETE FROM sessions WHERE user_id = ?').bind(user_id).run();
 				await env.cforum_db.prepare('DELETE FROM users WHERE id = ?').bind(user_id).run();
 				
 				await security.logAudit(userPayload.id, 'DELETE_ACCOUNT', 'user', String(user_id), {}, request);
@@ -717,7 +783,12 @@ export default {
 			try {
 				const userPayload = await authenticate(request);
 				const user_id = userPayload.id; // Force use of authenticated ID
-				
+
+				// Re-running setup replaces the secret and turns 2FA off, so a stolen session
+				// token must not be able to strip 2FA from an account that has it
+				const current = await env.cforum_db.prepare('SELECT totp_enabled FROM users WHERE id = ?').bind(user_id).first<{ totp_enabled: number }>();
+				if (current?.totp_enabled) return jsonResponse({ error: '2FA is already enabled' }, 400);
+
 				const secret = new OTPAuth.Secret({ size: 20 });
 				const secretBase32 = secret.base32;
 
@@ -861,6 +932,8 @@ export default {
 				const passwordHash = await hashPassword(new_password);
 				await env.cforum_db.prepare('UPDATE users SET password = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?')
 					.bind(passwordHash, user.id).run();
+				// Sign out everywhere, in case the reset was prompted by a compromised password
+				await env.cforum_db.prepare('DELETE FROM sessions WHERE user_id = ?').bind(user.id).run();
 
 				return jsonResponse({ success: true });
 			} catch (e) {
@@ -873,16 +946,22 @@ export default {
 			try {
 				const userPayload = await authenticate(request);
 				const body = await request.json() as any;
-				const { new_email, totp_code } = body; 
-				
-				if (!new_email) return jsonResponse({ error: 'Missing parameters' }, 400);
-				
-				if (new_email.length > 50) return jsonResponse({ error: 'Email too long (Max 50 chars)' }, 400);
-				
+				const { new_email, password, totp_code } = body;
+
+				if (!new_email || !password) return jsonResponse({ error: 'Missing parameters' }, 400);
+
+				if (typeof new_email !== 'string' || new_email.length > 50) return jsonResponse({ error: 'Email too long (Max 50 chars)' }, 400);
+				if (!/^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/.test(new_email)) return jsonResponse({ error: 'Invalid email address' }, 400);
+
 				const user_id = userPayload.id;
 
-const user = await env.cforum_db.prepare('SELECT * FROM users WHERE id = ?').bind(user_id).first<DBUser>();
+				const user = await env.cforum_db.prepare('SELECT * FROM users WHERE id = ?').bind(user_id).first<DBUser>();
 				if (!user) return jsonResponse({ error: 'User not found' }, 404);
+
+				// Changing the email hands over the account (password resets go there), so require the password
+				if (!(await verifyPassword(String(password), user.password)).ok) {
+					return jsonResponse({ error: 'Invalid password' }, 401);
+				}
 
 				// Verify 2FA if enabled
 				if (user.totp_enabled) {
@@ -903,7 +982,8 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE id = ?').bin
 				const exists = await env.cforum_db.prepare('SELECT id FROM users WHERE email = ?').bind(new_email).first();
 				if (exists) return jsonResponse({ error: 'Email already in use' }, 400);
 
-				const token = generateToken();
+				// The expiry rides along in the token (<uuid>.<expires ms>), so no extra column is needed
+				const token = `${generateToken()}.${Date.now() + EMAIL_CHANGE_TTL_MS}`;
 				await env.cforum_db.prepare('UPDATE users SET pending_email = ?, email_change_token = ? WHERE id = ?')
 					.bind(new_email, token, user.id).run();
 				
@@ -913,8 +993,9 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE id = ?').bin
 				const verifyLink = `${baseUrl}/api/verify-email-change?token=${token}`;
 				const emailHtml = `
 					<h1>Confirm Email Change</h1>
-					<p>Please click the link below to confirm changing your email to ${new_email}:</p>
+					<p>Please click the link below to confirm changing your email to ${escapeHtml(new_email)}:</p>
 					<a href="${verifyLink}">Confirm Change</a>
+					<p>This link will expire in 24 hours.</p>
 				`;
 
 				ctx.waitUntil(sendEmail(new_email, 'Confirm Email Change', emailHtml, env).catch(console.error));
@@ -930,8 +1011,15 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE id = ?').bin
 			if (!token) return new Response('Missing token', { status: 400 });
 
 			try {
-const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change_token = ?').bind(token).first<DBUser>();
+				const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change_token = ?').bind(token).first<DBUser>();
 				if (!user) return new Response('Invalid token', { status: 400 });
+
+				// Tokens issued before expiries were added have no ".<expires>" part; treat them as expired
+				const expires = Number(token.split('.')[1]);
+				if (!expires || Date.now() > expires) {
+					await env.cforum_db.prepare('UPDATE users SET pending_email = NULL, email_change_token = NULL WHERE id = ?').bind(user.id).run();
+					return new Response('This email change link has expired. Please request a new one from your settings.', { status: 400 });
+				}
 
 				await env.cforum_db.prepare('UPDATE users SET email = ?, pending_email = NULL, email_change_token = NULL WHERE id = ?')
 					.bind(user.pending_email, user.id).run();
@@ -957,6 +1045,7 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change
 				if (password) {
 					const hash = await hashPassword(password);
 					await env.cforum_db.prepare('UPDATE users SET password = ? WHERE id = ?').bind(hash, id).run();
+					await env.cforum_db.prepare('DELETE FROM sessions WHERE user_id = ?').bind(id).run();
 				}
 				if (email) {
 					if (email.length > 50) return jsonResponse({ error: 'Email too long (Max 50 chars)' }, 400);
@@ -1002,7 +1091,7 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change
 						if (user) {
 							const emailHtml = `
 								<h1>Username Changed</h1>
-								<p>Your username has been changed by an administrator to <strong>${username}</strong>.</p>
+								<p>Your username has been changed by an administrator to <strong>${escapeHtml(username)}</strong>.</p>
 								<p>If you have any questions, please contact an administrator.</p>
 							`;
 							ctx.waitUntil(sendEmail(user.email, 'Your username has been changed', emailHtml, env).catch(console.error));
@@ -1182,7 +1271,7 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change
 					if (!user) throw new Error('User unexpectedly missing');
 					const emailHtml = `
 						<h1>Account Verified</h1>
-						<p>Your account (username: <strong>${user.username}</strong>) has been manually verified by an administrator.</p>
+						<p>Your account (username: <strong>${escapeHtml(user.username)}</strong>) has been manually verified by an administrator.</p>
 						<p>You can now log in and use all features.</p>
 					`;
 					ctx.waitUntil(sendEmail(user.email as string, 'Your account has been verified', emailHtml, env).catch(console.error));
@@ -1215,7 +1304,7 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change
 				const baseUrl = getBaseUrl();
 				const verifyLink = `${baseUrl}/api/verify?token=${token}`;
 				const emailHtml = `
-					<h1>Welcome to the forum, ${user.username}!</h1>
+					<h1>Welcome to the forum, ${escapeHtml(user.username)}!</h1>
 					<p>Please click the link below to verify your email address:</p>
 					<a href="${verifyLink}">Verify Email</a>
 					<p>If you did not request this, please ignore this email.</p>
@@ -1272,6 +1361,7 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change
 
 				// 4. Finally, delete the user
 				const userToDelete = await env.cforum_db.prepare('SELECT email, username FROM users WHERE id = ?').bind(id).first();
+				await env.cforum_db.prepare('DELETE FROM sessions WHERE user_id = ?').bind(id).run();
 				await env.cforum_db.prepare('DELETE FROM users WHERE id = ?').bind(id).run();
 				
 				await security.logAudit(userPayload.id, 'ADMIN_DELETE_USER', 'user', String(id), {}, request);
@@ -1282,7 +1372,7 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change
 					if (setting && setting.value === '1') {
 						const emailHtml = `
 							<h1>Account Deleted</h1>
-							<p>Your account (username: <strong>${userToDelete.username}</strong>) has been deleted by an administrator.</p>
+							<p>Your account (username: <strong>${escapeHtml(userToDelete.username)}</strong>) has been deleted by an administrator.</p>
 							<p>If you believe this was a mistake, please contact an administrator.</p>
 						`;
 						ctx.waitUntil(sendEmail(userToDelete.email as string, 'Your account has been deleted', emailHtml, env).catch(console.error));
@@ -1451,9 +1541,11 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change
 
 		// --- END ADMIN ROUTES ---
 
-		// TEST: Email Debug
+		// TEST: Email Debug (admin only, or anyone could send mail from our domain)
 		if (url.pathname === '/api/test-email' && method === 'POST') {
 			try {
+				const userPayload = await authenticate(request);
+				if (userPayload.role !== 'admin') return jsonResponse({ error: 'Unauthorized' }, 403);
 				const body = await request.json() as any;
 				const { to } = body;
 				if (!to) return jsonResponse({ error: 'Missing recipient address' }, 400);
@@ -1485,7 +1577,11 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change
 					return jsonResponse({ error: 'Missing email, username or password' }, 400);
 				}
 
+				if (typeof email !== 'string' || typeof username !== 'string' || typeof password !== 'string') {
+					return jsonResponse({ error: 'Invalid parameters' }, 400);
+				}
 				if (email.length > 50) return jsonResponse({ error: 'Email too long (Max 50 chars)' }, 400);
+				if (!/^[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+$/.test(email)) return jsonResponse({ error: 'Invalid email address' }, 400);
 
 				if (username.length > 20) return jsonResponse({ error: 'Username too long (Max 20 chars)' }, 400);
 				if (isVisuallyEmpty(username)) return jsonResponse({ error: 'Username cannot be empty' }, 400);
@@ -1511,7 +1607,7 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change
 				const verifyLink = `${baseUrl}/api/verify?token=${verificationToken}`;
 				
 				const emailHtml = `
-					<h1>Welcome to the forum, ${username}!</h1>
+					<h1>Welcome to the forum, ${escapeHtml(username)}!</h1>
 					<p>Please click the link below to verify your email address:</p>
 					<a href="${verifyLink}">Verify Email</a>
 					<p>If you did not request this, please ignore this email.</p>
@@ -1564,11 +1660,11 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change
 			}
 
 			try {
-				const { success } = await env.cforum_db.prepare(
+				const { success, meta } = await env.cforum_db.prepare(
 					'UPDATE users SET verified = 1, verification_token = NULL WHERE verification_token = ?'
 				).bind(token).run();
 
-				if (success) {
+				if (success && meta?.changes) {
 					// Redirect to home page with verified param
 					return Response.redirect(`${getBaseUrl()}/?verified=true`, 302);
 				} else {
@@ -1576,18 +1672,6 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change
 				}
 			} catch (e) {
 				return new Response('Verification failed', { status: 500 });
-			}
-		}
-
-		// GET /users
-		if (url.pathname === '/api/users' && method === 'GET') {
-			try {
-				const { results } = await env.cforum_db.prepare(
-					'SELECT id, email, username, created_at FROM users'
-				).all();
-				return jsonResponse(results);
-			} catch (e) {
-				return handleError(e);
 			}
 		}
 
@@ -1605,8 +1689,9 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change
 		// GET /posts
 		if (url.pathname === '/api/posts' && method === 'GET') {
 			try {
-				const limit = parseInt(url.searchParams.get('limit') || '20');
-				const offset = parseInt(url.searchParams.get('offset') || '0');
+				// Clamp paging so one request can't pull the whole table
+				const limit = Math.min(Math.max(parseInt(url.searchParams.get('limit') || '20') || 20, 1), 50);
+				const offset = Math.max(parseInt(url.searchParams.get('offset') || '0') || 0, 0);
 				const categoryId = url.searchParams.get('category_id');
 				const q = (url.searchParams.get('q') || url.searchParams.get('query') || '').trim();
 				const sortByRaw = (url.searchParams.get('sort_by') || 'time').trim().toLowerCase();
@@ -1876,14 +1961,15 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change
 				// Email Notification Logic
 				if (success) {
 					const commenter = await env.cforum_db.prepare('SELECT username FROM users WHERE id = ?').bind(userPayload.id).first<{ username: string }>();
-					const commenterName = commenter ? commenter.username : 'Unknown';
+					const commenterName = escapeHtml(commenter ? commenter.username : 'Unknown');
+					const postTitle = escapeTitle(post.title);
 					const postUrl = `${getBaseUrl()}/post?id=${postId}`;
 
 					// 1. Notify Post Author (if not self)
 					if (post.author_id !== userPayload.id && post.email_notifications === 1) {
 						const emailHtml = `
 							<h1>New Comment on your post</h1>
-							<p><strong>${commenterName}</strong> commented on your post "<strong>${post.title}</strong>":</p>
+							<p><strong>${commenterName}</strong> commented on your post "<strong>${postTitle}</strong>":</p>
 							<blockquote>${content}</blockquote>
 							<p><a href="${postUrl}">View Comment</a></p>
 							<p style="font-size:0.8em;color:#666;">You received this email because you are subscribed to notifications.</p>
@@ -1899,7 +1985,7 @@ const user = await env.cforum_db.prepare('SELECT * FROM users WHERE email_change
 						if (parentCommentUser && parentCommentUser.email_notifications === 1) {
 							const replyHtml = `
 								<h1>New Reply to your comment</h1>
-								<p><strong>${commenterName}</strong> replied to your comment on "<strong>${post.title}</strong>":</p>
+								<p><strong>${commenterName}</strong> replied to your comment on "<strong>${postTitle}</strong>":</p>
 								<blockquote>${content}</blockquote>
 								<p><a href="${postUrl}">View Reply</a></p>
 								<p style="font-size:0.8em;color:#666;">You received this email because you are subscribed to notifications.</p>

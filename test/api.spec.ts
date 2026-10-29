@@ -242,3 +242,88 @@ describe('comments', () => {
 		expect((await getComments(postId)).some((c) => c.id === comment.id)).toBe(false);
 	});
 });
+
+describe('security hardening', () => {
+	it('upgrades a legacy SHA-256 password hash to PBKDF2 on login', async () => {
+		await createUser('dave@example.com', 'dave');
+		await login('dave@example.com');
+		const row = await env.cforum_db.prepare('SELECT password FROM users WHERE email = ?').bind('dave@example.com').first<{ password: string }>();
+		expect(row!.password).toMatch(/^pbkdf2\$100000\$[0-9a-f]{32}\$[0-9a-f]{64}$/);
+		// and the upgraded hash still verifies
+		await login('dave@example.com');
+	});
+
+	it('does not expose a public list of users and their emails', async () => {
+		const res = await exports.default.fetch('https://forum.test/api/users');
+		expect(res.status).toBe(404);
+	});
+
+	it('only lets admins send test emails', async () => {
+		const anon = await api('/test-email', { method: 'POST', body: { to: 'someone@example.com' } });
+		expect(anon.status).toBe(401);
+		const user = await api('/test-email', { method: 'POST', token: aliceToken, body: { to: 'someone@example.com' } });
+		expect(user.status).toBe(403);
+	});
+
+	it('requires the current password to change email', async () => {
+		const missing = await api('/user/change-email', { method: 'POST', token: aliceToken, body: { new_email: 'alice2@example.com' } });
+		expect(missing.status).toBe(400);
+		const wrong = await api('/user/change-email', { method: 'POST', token: aliceToken, body: { new_email: 'alice2@example.com', password: 'wrongpass1' } });
+		expect(wrong.status).toBe(401);
+	});
+
+	it('will not reset 2FA on an account that already has it enabled', async () => {
+		await env.cforum_db.prepare('UPDATE users SET totp_enabled = 1, totp_secret = ? WHERE email = ?').bind('JBSWY3DPEHPK3PXP', 'bob@example.com').run();
+		const { status } = await api('/user/totp/setup', { method: 'POST', token: bobToken, body: {} });
+		expect(status).toBe(400);
+		const row = await env.cforum_db.prepare('SELECT totp_enabled, totp_secret FROM users WHERE email = ?').bind('bob@example.com').first<{ totp_enabled: number; totp_secret: string }>();
+		expect(row).toEqual({ totp_enabled: 1, totp_secret: 'JBSWY3DPEHPK3PXP' });
+		await env.cforum_db.prepare('UPDATE users SET totp_enabled = 0, totp_secret = NULL WHERE email = ?').bind('bob@example.com').run();
+	});
+
+	it('takes the role from the database, not the token', async () => {
+		await env.cforum_db.prepare("UPDATE users SET role = 'admin' WHERE email = ?").bind('alice@example.com').run();
+		const token = await login('alice@example.com');
+		expect((await api('/admin/stats', { token })).status).toBe(200);
+		await env.cforum_db.prepare("UPDATE users SET role = 'user' WHERE email = ?").bind('alice@example.com').run();
+		expect((await api('/admin/stats', { token })).status).toBe(403);
+	});
+
+	it('clamps the post listing page size', async () => {
+		const { status } = await api('/posts?limit=100000&offset=-5');
+		expect(status).toBe(200);
+	});
+});
+
+describe('email change links', () => {
+	async function confirm(token: string) {
+		return exports.default.fetch(`https://forum.test/api/verify-email-change?token=${encodeURIComponent(token)}`, { redirect: 'manual' });
+	}
+
+	it('confirms a link that has not expired', async () => {
+		await createUser('erin@example.com', 'erin');
+		const token = `${crypto.randomUUID()}.${Date.now() + 60_000}`;
+		await env.cforum_db.prepare('UPDATE users SET pending_email = ?, email_change_token = ? WHERE email = ?').bind('erin2@example.com', token, 'erin@example.com').run();
+		const res = await confirm(token);
+		expect(res.status).toBe(302);
+		const row = await env.cforum_db.prepare('SELECT id FROM users WHERE email = ?').bind('erin2@example.com').first();
+		expect(row).not.toBeNull();
+	});
+
+	it('rejects an expired link and clears the pending change', async () => {
+		await createUser('frank@example.com', 'frank');
+		const token = `${crypto.randomUUID()}.${Date.now() - 1000}`;
+		await env.cforum_db.prepare('UPDATE users SET pending_email = ?, email_change_token = ? WHERE email = ?').bind('frank2@example.com', token, 'frank@example.com').run();
+		const res = await confirm(token);
+		expect(res.status).toBe(400);
+		const row = await env.cforum_db.prepare('SELECT email, pending_email, email_change_token FROM users WHERE email = ?').bind('frank@example.com').first();
+		expect(row).toEqual({ email: 'frank@example.com', pending_email: null, email_change_token: null });
+	});
+
+	it('rejects a link issued before expiries were added', async () => {
+		await createUser('gina@example.com', 'gina');
+		const token = crypto.randomUUID();
+		await env.cforum_db.prepare('UPDATE users SET pending_email = ?, email_change_token = ? WHERE email = ?').bind('gina2@example.com', token, 'gina@example.com').run();
+		expect((await confirm(token)).status).toBe(400);
+	});
+});

@@ -47,19 +47,22 @@ export class Security {
             if (typeof email !== 'string' || !email) return null;
             if (typeof jti !== 'string' || !jti) return null;
 
+            // Read the role from the user row rather than trusting the token, so demoting or
+            // deleting a user takes effect immediately instead of when the token expires
             const session = await this.env.cforum_db
-                .prepare('SELECT user_id, expires_at FROM sessions WHERE jti = ?')
+                .prepare('SELECT sessions.user_id, sessions.expires_at, users.role FROM sessions JOIN users ON users.id = sessions.user_id WHERE sessions.jti = ?')
                 .bind(jti)
                 .first();
             if (!session) return null;
             if (Number(session.user_id) !== id) return null;
             if (Number(session.expires_at) <= Math.floor(Date.now() / 1000)) return null;
+            const currentRole = String(session.role || 'user');
 
             if (Math.random() < 0.01) {
                 await this.env.cforum_db.prepare('DELETE FROM sessions WHERE expires_at < ?').bind(Math.floor(Date.now() / 1000)).run();
             }
 
-            return { id, role, email };
+            return { id, role: currentRole, email };
         } catch (e) {
             return null;
         }

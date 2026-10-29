@@ -133,8 +133,10 @@ export async function deleteImage(env: S3Env, imageUrl: string, expectedOwnerId?
     if (!key) return false;
 
     if (expectedOwnerId) {
-        const userSegment = `/usr/${expectedOwnerId}/`;
-        if (!key.includes(userSegment)) {
+        // Keys look like "[prefix/]usr/<id>/..."; the leading slash is stripped when there is no prefix
+        const pathPrefix = (env.AWS_PATH_PREFIX || '').replace(/^\/+|\/+$/g, '');
+        const ownerPrefix = `${pathPrefix ? pathPrefix + '/' : ''}usr/${expectedOwnerId}/`;
+        if (!key.startsWith(ownerPrefix)) {
             console.error(`[Security] Blocked unauthorized image deletion. Key: ${key}, Expected Owner: ${expectedOwnerId}`);
             return false;
         }
