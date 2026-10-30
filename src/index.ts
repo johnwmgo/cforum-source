@@ -1572,9 +1572,13 @@ export default {
 					return jsonResponse({ error: 'Turnstile verification failed' }, 403);
 				}
 
-				const { email, username, password } = body;
+				const { email, username, password, age_confirmed } = body;
 				if (!email || !username || !password) {
 					return jsonResponse({ error: 'Missing email, username or password' }, 400);
+				}
+				// Minimum age is 13 (see the Privacy Policy)
+				if (age_confirmed !== true) {
+					return jsonResponse({ error: 'You must be 13 or older to register' }, 400);
 				}
 
 				if (typeof email !== 'string' || typeof username !== 'string' || typeof password !== 'string') {

@@ -13,6 +13,7 @@ export function RegisterPage() {
 	const [email, setEmail] = React.useState('');
 	const [username, setUsername] = React.useState('');
 	const [password, setPassword] = React.useState('');
+	const [ageConfirmed, setAgeConfirmed] = React.useState(false);
 	const [turnstileToken, setTurnstileToken] = React.useState('');
 	const [turnstileResetKey, setTurnstileResetKey] = React.useState(0);
 	const [loading, setLoading] = React.useState(false);
@@ -27,6 +28,10 @@ export function RegisterPage() {
 		e.preventDefault();
 		setError('');
 		setSuccess('');
+		if (!ageConfirmed) {
+			setError('You must be 13 or older to register');
+			return;
+		}
 		if (turnstileActive && !turnstileToken) {
 			setError('Please complete the CAPTCHA');
 			return;
@@ -41,6 +46,7 @@ export function RegisterPage() {
 					email,
 					username,
 					password,
+					age_confirmed: ageConfirmed,
 					'cf-turnstile-response': turnstileToken
 				})
 			});
@@ -54,6 +60,7 @@ export function RegisterPage() {
 			setEmail('');
 			setUsername('');
 			setPassword('');
+			setAgeConfirmed(false);
 			setTurnstileToken('');
 			setTurnstileResetKey((v) => v + 1);
 		} catch (err: any) {
@@ -113,6 +120,24 @@ export function RegisterPage() {
 									required
 								/>
 							</div>
+
+							<label className="flex items-start gap-2 text-sm">
+								<input
+									type="checkbox"
+									className="mt-0.5 h-4 w-4"
+									checked={ageConfirmed}
+									onChange={(e) => setAgeConfirmed(e.target.checked)}
+									required
+								/>
+								<span>I am 13 years of age or older.</span>
+							</label>
+							<p className="text-xs text-muted-foreground">
+								See our{' '}
+								<a className="underline underline-offset-4" href="/privacy" target="_blank" rel="noreferrer">
+									Privacy Policy
+								</a>{' '}
+								for how we handle your information.
+							</p>
 
 <TurnstileWidget enabled={turnstileActive} siteKey={siteKey} onToken={setTurnstileToken} resetKey={turnstileResetKey} />
 

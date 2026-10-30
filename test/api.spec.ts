@@ -347,3 +347,16 @@ describe('like status privacy', () => {
 		expect((await api(`/posts/${postId}`, { token: aliceToken })).data.liked).toBe(true);
 	});
 });
+
+describe('registration', () => {
+	it('requires confirming the user is 13 or older', async () => {
+		const body = { email: 'young@example.com', username: 'young', password: 'password123' };
+		const missing = await api('/register', { method: 'POST', body });
+		expect(missing.status).toBe(400);
+		expect(missing.data.error).toBe('You must be 13 or older to register');
+		const unchecked = await api('/register', { method: 'POST', body: { ...body, age_confirmed: false } });
+		expect(unchecked.status).toBe(400);
+		const row = await env.cforum_db.prepare('SELECT id FROM users WHERE email = ?').bind('young@example.com').first();
+		expect(row).toBeNull();
+	});
+});

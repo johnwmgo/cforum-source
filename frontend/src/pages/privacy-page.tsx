@@ -149,8 +149,14 @@ export function PrivacyPage() {
 
 						<Section title="Who can join">
 							<p>
-								There is no minimum age. All felters are welcome. Because posts, usernames and avatars are public, younger members may want
-								a parent or guardian to help them choose a username and avatar that don't reveal personal details.
+								You must be 13 years of age or older to create an account, and you confirm this when you register. Anyone can read the
+								forum without an account. We do not knowingly collect personal information from children under 13. If we learn that an
+								account belongs to someone under 13, we will delete it and its information. If you believe a child under 13 has an
+								account, please contact us at{' '}
+								<a className={link} href={`mailto:${CONTACT_EMAIL}`}>
+									{CONTACT_EMAIL}
+								</a>
+								.
 							</p>
 						</Section>
 

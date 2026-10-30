@@ -169,6 +169,7 @@ Main changes from the original:
 - **Listing icons** - In the post listing, the heart likes or unlikes a post and shows whether you've liked it, the speech bubble opens the post at its comments, and all three icons have tooltips (2026-10-28)
 - **Privacy Policy** - Footer link to a Privacy Policy page describing what the forum collects and how it is used, based on what the code does (2026-10-30)
 - **Like privacy** - A post's like status is only reported to the logged-in viewer, so nobody can look up whether another account liked a post (2026-10-30)
+- **Minimum age** - Members must be 13 or older: registration requires confirming this, and the Privacy Policy says so (2026-10-30)
 
 For the complete, dated list of changes, see the [commit history](https://github.com/johnwmgo/cforum-source/commits/main). Every commit after `1f80425` is a modification.
 
