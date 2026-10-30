@@ -327,3 +327,23 @@ describe('email change links', () => {
 		expect((await confirm(token)).status).toBe(400);
 	});
 });
+
+describe('like status privacy', () => {
+	it('only reports like status for the logged-in viewer, not a user id in the query', async () => {
+		const postId = await createPost(aliceToken, 'Like privacy');
+		const alice = await env.cforum_db.prepare('SELECT id FROM users WHERE email = ?').bind('alice@example.com').first<{ id: number }>();
+		expect((await api(`/posts/${postId}/like`, { method: 'POST', token: aliceToken, body: {} })).data.liked).toBe(true);
+
+		// Anonymous lookup of someone else's like is no longer answered
+		const anon = await api(`/posts/${postId}?user_id=${alice!.id}`);
+		expect(anon.status).toBe(200);
+		expect(anon.data.liked).toBeUndefined();
+
+		// Bob asking about Alice's like gets his own status instead
+		const bob = await api(`/posts/${postId}?user_id=${alice!.id}`, { token: bobToken });
+		expect(bob.data.liked).toBe(false);
+
+		// Alice sees her own like
+		expect((await api(`/posts/${postId}`, { token: aliceToken })).data.liked).toBe(true);
+	});
+});

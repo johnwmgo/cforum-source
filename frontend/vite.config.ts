@@ -28,7 +28,8 @@ export default defineConfig({
 				settings: path.resolve(__dirname, 'pages', 'settings.html'),
 				admin: path.resolve(__dirname, 'pages', 'admin.html'),
 				'request-category': path.resolve(__dirname, 'pages', 'request-category.html'),
-				about: path.resolve(__dirname, 'pages', 'about.html')
+				about: path.resolve(__dirname, 'pages', 'about.html'),
+				privacy: path.resolve(__dirname, 'pages', 'privacy.html')
 			}
 		}
 	},

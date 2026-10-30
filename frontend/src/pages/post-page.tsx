@@ -90,8 +90,8 @@ export function PostPage() {
 		setLoading(true);
 		setError('');
 		try {
-			const userParam = userId ? `?user_id=${userId}` : '';
-			const p = await apiFetch<Post>(`/posts/${postId}${userParam}`);
+			// The login token tells the server who is viewing, so it can say whether they liked the post
+			const p = await apiFetch<Post>(`/posts/${postId}`, { headers: getSecurityHeaders('GET') });
 			const cs = await apiFetch<Comment[]>(`/posts/${postId}/comments`);
 			setPost(p);
 			setComments(cs);

@@ -1790,10 +1790,14 @@ export default {
 					(post as any).view_count = Number((post as any).view_count || 0) + 1;
 				} catch {}
 				
-				// Check like status if user_id provided
-				const userId = url.searchParams.get('user_id');
-				if (userId) {
-					const like = await env.cforum_db.prepare('SELECT id FROM likes WHERE post_id = ? AND user_id = ?').bind(postId, userId).first();
+				// Like status only for the logged-in viewer; never take a user id from the query,
+				// or anyone could check whether any account liked this post
+				let viewer: UserPayload | null = null;
+				try {
+					if (request.headers.get('Authorization')) viewer = await authenticate(request);
+				} catch {}
+				if (viewer) {
+					const like = await env.cforum_db.prepare('SELECT id FROM likes WHERE post_id = ? AND user_id = ?').bind(postId, viewer.id).first();
 					(post as any).liked = !!like;
 				}
 
@@ -2159,6 +2163,7 @@ export default {
 				pathname === '/post' ? '/post.html' :
 				pathname === '/request-category' ? '/request-category.html' :
 				pathname === '/about' ? '/about.html' :
+				pathname === '/privacy' ? '/privacy.html' :
 				pathname;
 
 			const assetUrl = new URL(request.url);

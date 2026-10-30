@@ -36,9 +36,12 @@ export function PageShell({
 			)}
 			<main className="mx-auto w-full max-w-5xl px-4 py-6">{children}</main>
 			<footer className="border-t">
-				<div className="mx-auto w-full max-w-5xl px-4 py-4 text-sm text-muted-foreground">
+				<div className="mx-auto flex w-full max-w-5xl gap-4 px-4 py-4 text-sm text-muted-foreground">
 					<a className="hover:text-foreground hover:underline underline-offset-4" href="/about">
 						About / Legal
+					</a>
+					<a className="hover:text-foreground hover:underline underline-offset-4" href="/privacy">
+						Privacy Policy
 					</a>
 				</div>
 			</footer>
