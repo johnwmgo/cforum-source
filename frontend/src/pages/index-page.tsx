@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useConfig } from '@/hooks/use-config';
 import { apiFetch, formatDate, getSecurityHeaders, type Category, type Post } from '@/lib/api';
 import { getToken, getUser } from '@/lib/auth';
-import { attachFancybox, highlightCodeBlocks, renderMarkdownToHtml } from '@/lib/markdown';
+import { attachFancybox, highlightCodeBlocks, useMarkdownHtml } from '@/lib/markdown';
 import { validateText } from '@/lib/validators';
 import { prepareImageForUpload } from '@/lib/image';
 
@@ -21,7 +21,8 @@ function PostExcerpt({ content }: { content: string }) {
 	const [expanded, setExpanded] = React.useState(false);
 	const [overflowing, setOverflowing] = React.useState(false);
 	const ref = React.useRef<HTMLDivElement | null>(null);
-	const html = React.useMemo(() => renderMarkdownToHtml(content), [content]);
+	const htmlProp = useMarkdownHtml(content);
+	const html = htmlProp.__html;
 	const hasImages = /<img\b/i.test(html);
 
 	React.useEffect(() => {
@@ -53,7 +54,7 @@ function PostExcerpt({ content }: { content: string }) {
 					'prose max-w-none break-words text-sm [&>*:first-child]:mt-0 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1 ' +
 					(expanded ? '' : 'max-h-28 overflow-hidden [&_img]:hidden ' + (overflowing ? '[mask-image:linear-gradient(to_bottom,black_55%,transparent)]' : ''))
 				}
-				dangerouslySetInnerHTML={{ __html: html }}
+				dangerouslySetInnerHTML={htmlProp}
 			/>
 			{canToggle ? (
 				<button
@@ -103,6 +104,7 @@ export function IndexPage() {
 	const [createError, setCreateError] = React.useState('');
 	const [uploadLoading, setUploadLoading] = React.useState(false);
 	const [uploadError, setUploadError] = React.useState('');
+	const newContentHtml = useMarkdownHtml(newContent || '');
 
 	// insert text at current cursor position in the textarea (or append)
 	function insertIntoContent(insertText: string) {
@@ -771,7 +773,7 @@ export function IndexPage() {
 											<div
 												ref={previewRef}
 												className="prose max-w-none break-words [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1"
-												dangerouslySetInnerHTML={{ __html: renderMarkdownToHtml(newContent || '') }}
+												dangerouslySetInnerHTML={newContentHtml}
 											/>
 										</div>
 									) : null}

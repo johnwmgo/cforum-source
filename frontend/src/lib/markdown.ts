@@ -1,6 +1,7 @@
 import { marked } from 'marked';
 import createDOMPurify from 'dompurify';
 import { highlightElement } from '@speed-highlight/core';
+import { useMemo } from 'react';
 
 function escapeHtml(text: string) {
 	return text
@@ -53,6 +54,13 @@ export function renderMarkdownToHtml(markdown: string) {
 	return DOMPurify.sanitize(marked.parse(markdown) as string, {
 		ADD_ATTR: ['data-fancybox', 'data-caption', 'referrerpolicy']
 	});
+}
+
+// React 19 rewrites innerHTML whenever the dangerouslySetInnerHTML object changes identity, even if
+// the HTML is the same, which wipes out syntax highlighting on any unrelated re-render. This hook
+// keeps the object stable until the markdown itself changes.
+export function useMarkdownHtml(markdown: string) {
+	return useMemo(() => ({ __html: renderMarkdownToHtml(markdown) }), [markdown]);
 }
 
 export function highlightCodeBlocks(root: ParentNode | null) {

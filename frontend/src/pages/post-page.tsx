@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useConfig } from '@/hooks/use-config';
 import { apiFetch, formatDate, getSecurityHeaders, type Category, type Comment, type Post } from '@/lib/api';
 import { getToken, getUser } from '@/lib/auth';
-import { attachFancybox, highlightCodeBlocks, renderMarkdownToHtml } from '@/lib/markdown';
+import { attachFancybox, highlightCodeBlocks, useMarkdownHtml } from '@/lib/markdown';
 import { validateText } from '@/lib/validators';
 import { prepareImageForUpload } from '@/lib/image';
 
@@ -63,6 +63,8 @@ export function PostPage() {
 	const contentRef = React.useRef<HTMLDivElement | null>(null);
 	const [editPreviewOpen, setEditPreviewOpen] = React.useState(true);
 	const editPreviewRef = React.useRef<HTMLDivElement | null>(null);
+	const editContentHtml = useMarkdownHtml(editContent || '');
+	const postContentHtml = useMarkdownHtml(post?.content || '');
 	const [adminMenuOpen, setAdminMenuOpen] = React.useState(false);
 	const adminMenuRef = React.useRef<HTMLDivElement | null>(null);
 	const [allCategories, setAllCategories] = React.useState<Category[]>([]);
@@ -542,7 +544,7 @@ export function PostPage() {
 												<div
 													ref={editPreviewRef}
 													className="prose max-w-none break-words [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1"
-													dangerouslySetInnerHTML={{ __html: renderMarkdownToHtml(editContent || '') }}
+													dangerouslySetInnerHTML={editContentHtml}
 												/>
 											</div>
 										) : null}
@@ -554,7 +556,7 @@ export function PostPage() {
 									<div
 										className="prose max-w-none break-words [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_li]:my-1"
 										ref={contentRef}
-										dangerouslySetInnerHTML={{ __html: renderMarkdownToHtml(post.content || '') }}
+										dangerouslySetInnerHTML={postContentHtml}
 									/>
 								)}
 							</CardContent>

@@ -161,7 +161,7 @@ Main changes from the original:
 - **Post previews** - The post listing shows about a paragraph of each post's content, with Show more / Show less to expand the full post in place (2026-10-28)
 - **README formatting** - Fixed Markdown style warnings (code block languages, blank lines around lists and tables, Markdown images instead of HTML) (2026-10-28)
 - **Post editing** - Labelled Edit button on the post page and an Edit link in the post listing for the post's author, which opens the editor directly; Cancel discards unsaved edits (2026-10-28)
-- **Support avatar** - The support@felting.com account's avatar is the felting.com favicon, a bold serif F on the site's off-white background ([favicon-256.png](https://felting.com/images/favicon-256.png)) (2026-10-28)
+- **Support avatar** - The `support@felting.com` account's avatar is the felting.com favicon, a bold serif F on the site's off-white background ([favicon-256.png](https://felting.com/images/favicon-256.png)) (2026-10-28)
 - **Favicon** - Indigo chat-bubble icon with an F, plus a 256×256 PNG (2026-10-28)
 - **Security fixes** - Removed the public user list (it exposed every email address); test email endpoint limited to admins; email links only use trusted site addresses; salted PBKDF2 password hashing (old hashes upgrade on next login); current password required to change email; 2FA can't be reset once enabled; password resets and account deletions sign the user out everywhere; admin role checked on every request; HTML escaped in outgoing emails; internal errors hidden from visitors (2026-10-28)
 - **Email change links** - Expire after 24 hours (2026-10-28)
@@ -170,6 +170,7 @@ Main changes from the original:
 - **Privacy Policy** - Footer link to a Privacy Policy page describing what the forum collects and how it is used, based on what the code does (2026-10-30)
 - **Like privacy** - A post's like status is only reported to the logged-in viewer, so nobody can look up whether another account liked a post (2026-10-30)
 - **Minimum age** - Members must be 13 or older: registration requires confirming this, and the Privacy Policy says so (2026-10-30)
+- **Code highlighting** - Code blocks in posts, post previews and the editors stay highlighted; React 19 was rewriting the rendered post HTML on every redraw, such as when Turnstile issued its token (2026-10-30)
 
 For the complete, dated list of changes, see the [commit history](https://github.com/johnwmgo/cforum-source/commits/main). Every commit after `1f80425` is a modification.
 
