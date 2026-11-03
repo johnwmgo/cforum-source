@@ -171,6 +171,7 @@ Main changes from the original:
 - **Like privacy** - A post's like status is only reported to the logged-in viewer, so nobody can look up whether another account liked a post (2026-10-30)
 - **Minimum age** - Members must be 13 or older: registration requires confirming this, and the Privacy Policy says so (2026-10-30)
 - **Code highlighting** - Code blocks in posts, post previews and the editors stay highlighted; React 19 was rewriting the rendered post HTML on every redraw, such as when Turnstile issued its token (2026-10-30)
+- **Source mirror** - The public source mirror leaves out private project notes (`CLAUDE.md`); all source code is still published (2026-11-03)
 
 For the complete, dated list of changes, see the [commit history](https://github.com/johnwmgo/cforum-source/commits/main). Every commit after `1f80425` is a modification.
 
