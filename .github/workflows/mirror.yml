@@ -20,7 +20,31 @@ jobs:
         with:
           fetch-depth: 0
 
+      # CLAUDE.md holds private project notes, so strip it from every commit before
+      # publishing. Only commits from the first one that added it onward are rewritten:
+      # filter-repo drops GPG signatures, so rewriting older (upstream, signed) commits
+      # would change every hash in the public history. The rewrite is deterministic,
+      # so the mirror's history stays stable from one push to the next.
+      - name: Remove private notes from history
+        run: |
+          set -euo pipefail
+          pip install --quiet git-filter-repo
+          git clone --quiet --no-local "$GITHUB_WORKSPACE" "$RUNNER_TEMP/mirror"
+          cd "$RUNNER_TEMP/mirror"
+          # Drop the unfiltered remote-tracking refs so only what we push remains
+          git remote remove origin
+          first=$(git log --reverse --diff-filter=A --format=%H main -- CLAUDE.md '*/CLAUDE.md' | sed -n 1p)
+          if [ -n "$first" ]; then
+            git filter-repo --force --invert-paths --path CLAUDE.md --path-glob '*/CLAUDE.md' --refs "$first^..main"
+          fi
+          # Refuse to publish if any commit or tag still contains a CLAUDE.md
+          if git log --all --name-only --format= | grep -E '(^|/)CLAUDE\.md$'; then
+            echo "::error::CLAUDE.md is still in the history; not pushing to the public mirror"
+            exit 1
+          fi
+
       - name: Push to mirror
+        working-directory: ${{ runner.temp }}/mirror
         run: |
           set -euo pipefail
           mkdir -p ~/.ssh
@@ -28,7 +52,7 @@ jobs:
           chmod 600 ~/.ssh/mirror_key
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           export GIT_SSH_COMMAND="ssh -i ~/.ssh/mirror_key -o IdentitiesOnly=yes"
-          git push --force git@github.com:johnwmgo/cforum-source.git HEAD:refs/heads/main
+          git push --force git@github.com:johnwmgo/cforum-source.git main:refs/heads/main
           git push --force git@github.com:johnwmgo/cforum-source.git --tags
         env:
           MIRROR_DEPLOY_KEY: ${{ secrets.MIRROR_DEPLOY_KEY }}
