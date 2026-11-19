@@ -269,6 +269,10 @@
 }
 
 .prose table {
+	/* Block so a wide table scrolls inside the post instead of widening the page on phones */
+	display: block;
+	max-width: 100%;
+	overflow-x: auto;
 	width: 100%;
 	margin-top: 1em;
 	margin-bottom: 1em;
@@ -375,4 +379,24 @@
 }
 .no-flex-gap .flex-wrap.gap-y-1 {
 	margin-bottom: -0.25rem;
+}
+
+/* Home toolbar on phones: the two menu groups fill the first line, so the second needs no right margin */
+.no-flex-gap .flex-wrap.gap-2.sm\:justify-end > :nth-child(2) {
+	margin-right: 0;
+}
+
+/* Responsive gap sizes used in the header and post list, from the sm breakpoint up */
+@media (min-width: 640px) {
+	.no-flex-gap .flex.sm\:gap-2:not(.flex-col):not(.flex-wrap) > * + * {
+		margin-left: 0.5rem;
+	}
+	.no-flex-gap .flex.sm\:gap-4:not(.flex-col):not(.flex-wrap) > * + * {
+		margin-left: 1rem;
+	}
+	/* A right-aligned wrapping row (home toolbar): left margins keep each line flush right */
+	.no-flex-gap .flex-wrap.gap-2.sm\:justify-end > * {
+		margin-right: 0;
+		margin-left: 0.5rem;
+	}
 }

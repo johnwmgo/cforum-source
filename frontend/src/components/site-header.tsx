@@ -27,7 +27,7 @@ export function SiteHeader({
 	}, []);
 	return (
 		<header className="w-full border-b bg-background">
-			<div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4">
+			<div className="mx-auto flex max-w-5xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:py-4">
 				<a
 					href="/"
 					title="Home"
@@ -36,11 +36,13 @@ export function SiteHeader({
 					<Home className="h-5 w-5" />
 					<span className="sr-only">Home</span>
 				</a>
-				<div className="flex items-center gap-2">
+				{/* On phones: avatar only (name shown on hover/tap via its title), tighter icon buttons, smaller Log Out */}
+				<div className="flex min-w-0 items-center gap-1 sm:gap-2">
 					<Button
 						type="button"
 						variant="ghost"
 						size="sm"
+						className="px-2 sm:px-3"
 						onClick={toggleTheme}
 						title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
 					>
@@ -49,7 +51,7 @@ export function SiteHeader({
 					</Button>
 					{user ? (
 						<>
-							<span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+							<span className="inline-flex items-center gap-2 text-sm text-muted-foreground" title={user.username}>
 								{user.avatar_url ? (
 									<img
 										src={user.avatar_url}
@@ -63,13 +65,13 @@ export function SiteHeader({
 										<UserIcon className="h-4 w-4" />
 									</span>
 								)}
-								<span>
+								<span className="hidden sm:inline">
 									Welcome, <span className="text-foreground">{user.username}</span>
 								</span>
 								{user.role === 'admin' ? (
 									<span
 										title="Admin"
-										className="inline-flex items-center gap-1 rounded border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-medium text-indigo-700 dark:text-indigo-300"
+										className="hidden items-center gap-1 rounded border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 text-[10px] font-medium text-indigo-700 dark:text-indigo-300 sm:inline-flex"
 									>
 										<Shield className="h-3 w-3" />
 										<span className="sr-only">Admin</span>
@@ -77,29 +79,30 @@ export function SiteHeader({
 								) : null}
 							</span>
 							{user.role === 'admin' ? (
-								<Button asChild variant="ghost" size="sm">
+								<Button asChild variant="ghost" size="sm" className="px-2 sm:px-3">
 									<a href="/admin" title="Admin Panel">
 										<Shield className="h-4 w-4" />
 										<span className="sr-only">Admin Panel</span>
 									</a>
 								</Button>
 							) : null}
-							<Button asChild variant="ghost" size="sm">
+							<Button asChild variant="ghost" size="sm" className="px-2 sm:px-3">
 								<a href="/request-category" title="Request a Category">
 									<FolderPlus className="h-4 w-4" />
 									<span className="sr-only">Request a Category</span>
 								</a>
 							</Button>
-							<Button asChild variant="ghost" size="sm">
+							<Button asChild variant="ghost" size="sm" className="px-2 sm:px-3">
 								<a href="/settings" title="Settings">
 									<Settings className="h-4 w-4" />
 									<span className="sr-only">Settings</span>
 								</a>
 							</Button>
-							<Separator orientation="vertical" className="h-6" />
+							<Separator orientation="vertical" className="hidden h-6 sm:block" />
 							{/* jwg changed logout button */}
 							<Button
 								variant="outline"
+								className="h-8 px-3 sm:h-9 sm:px-4"
 								onClick={() => {
 									logout();
 									onLogout?.();
@@ -111,13 +114,13 @@ export function SiteHeader({
 						</>
 					) : (
 						<>
-							<Button asChild variant="ghost" size="sm">
+							<Button asChild variant="ghost" size="sm" className="px-2 sm:px-3">
 								<a href="/login" title="Log in">
 									<LogIn className="h-4 w-4" />
 									<span className="sr-only">Log in</span>
 								</a>
 							</Button>
-							<Button asChild size="sm">
+							<Button asChild size="sm" className="px-2 sm:px-3">
 								<a href="/register" title="Register">
 									<UserPlus className="h-4 w-4" />
 									<span className="sr-only">Register</span>

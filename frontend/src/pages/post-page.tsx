@@ -574,8 +574,8 @@ export function PostPage() {
 										{organizeComments(comments).map((c) => (
 											<div key={c.id} className="rounded-md border p-3">
 												<div className="flex items-center justify-between gap-2">
-													<div className="text-sm">
-														<span className="inline-flex items-center gap-2">
+													<div className="min-w-0 text-sm">
+														<span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
 															{c.avatar_url ? (
 																<img
 																	src={c.avatar_url}
@@ -599,7 +599,7 @@ export function PostPage() {
 															<span className="text-muted-foreground">{formatDate(c.created_at)}</span>
 														</span>
 													</div>
-													<div className="flex items-center gap-2">
+													<div className="flex shrink-0 items-center gap-2">
 														<Button variant="ghost" size="sm" onClick={() => setReplyTo(c)}>
 															<Reply className="h-4 w-4" />
 															<span className="sr-only">Reply</span>
@@ -618,8 +618,8 @@ export function PostPage() {
 														{c.replies.map((r) => (
 															<div key={r.id} className="rounded-md bg-muted/30 p-2">
 																<div className="flex items-center justify-between gap-2">
-																	<div className="text-xs">
-																		<span className="inline-flex items-center gap-2">
+																	<div className="min-w-0 text-xs">
+																		<span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
 																			{r.avatar_url ? (
 																				<img
 																					src={r.avatar_url}

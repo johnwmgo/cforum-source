@@ -631,13 +631,15 @@ export function IndexPage() {
 							<h1 className="text-2xl font-semibold tracking-tight">Felting Forum</h1>
 						<p className="text-sm text-muted-foreground">Powered by Cloudflare</p>
 					</div>
-					<div className="flex items-center gap-2">
+					{/* Wraps on narrow screens: the two menus share a row, then search + refresh get a full row */}
+					<div className="flex min-w-0 flex-wrap items-center gap-2 sm:justify-end">
+						<div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
 						<label className="text-sm text-muted-foreground" htmlFor="category-filter">
 							Category
 						</label>
 						<select
 							id="category-filter"
-							className="h-9 rounded-md border bg-background px-3 text-sm"
+							className="h-9 min-w-0 flex-1 rounded-md border bg-background px-3 text-base sm:flex-none sm:text-sm"
 							value={selectedCategory}
 							onChange={(e) => {
 								setSelectedCategory(e.target.value);
@@ -652,12 +654,14 @@ export function IndexPage() {
 								</option>
 							))}
 						</select>
+					</div>
+					<div className="flex min-w-0 flex-1 items-center gap-2 sm:flex-none">
 						<label className="text-sm text-muted-foreground" htmlFor="sort-filter">
 							Sort
 						</label>
 						<select
 							id="sort-filter"
-							className="h-9 rounded-md border bg-background px-3 text-sm"
+							className="h-9 min-w-0 flex-1 rounded-md border bg-background px-3 text-base sm:flex-none sm:text-sm"
 							value={sortOption}
 							onChange={(e) => {
 								setSortOption(e.target.value);
@@ -670,8 +674,9 @@ export function IndexPage() {
 							<option value="comments_desc">Most commented</option>
 							<option value="views_desc">Most viewed</option>
 						</select>
+						</div>
 						<form
-							className="flex items-center gap-2"
+							className="flex w-full items-center gap-2 sm:w-auto"
 							onSubmit={(e) => {
 								e.preventDefault();
 								setPageOffset(0);
@@ -682,7 +687,7 @@ export function IndexPage() {
 								value={searchInput}
 								onChange={(e) => setSearchInput(e.target.value)}
 								placeholder="Search titles / content"
-								className="h-9 w-48"
+								className="h-9 min-w-0 flex-1 sm:w-48 sm:flex-none"
 							/>
 							<Button variant="outline" size="sm" type="submit" disabled={loading}>
 								<Search className="h-4 w-4" />
@@ -704,11 +709,11 @@ export function IndexPage() {
 									<span className="sr-only">Clear</span>
 								</Button>
 							) : null}
+							<Button variant="outline" size="sm" type="button" onClick={() => fetchPosts(0)} disabled={loading}>
+								<RefreshCw className="h-4 w-4" />
+								<span className="sr-only">Refresh</span>
+							</Button>
 						</form>
-						<Button variant="outline" size="sm" onClick={() => fetchPosts(0)} disabled={loading}>
-							<RefreshCw className="h-4 w-4" />
-							<span className="sr-only">Refresh</span>
-						</Button>
 					</div>
 				</div>
 
@@ -738,7 +743,7 @@ export function IndexPage() {
 										<Label htmlFor="new-category">Category (optional)</Label>
 										<select
 											id="new-category"
-											className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+											className="h-9 w-full rounded-md border bg-background px-3 text-base sm:text-sm"
 											value={newCategoryId}
 											onChange={(e) => setNewCategoryId(e.target.value)}
 										>
@@ -869,13 +874,13 @@ export function IndexPage() {
 							return (
 								<Card key={p.id}>
 									<CardContent className="py-5">
-										<div className="flex gap-4">
+										<div className="flex gap-3 sm:gap-4">
 											{coverUrl ? (
 												<a href={`/post?id=${p.id}`} className="shrink-0">
 													<img
 														src={coverUrl}
 														alt=""
-														className="h-20 w-28 rounded-md object-cover"
+														className="h-16 w-20 rounded-md object-cover sm:h-20 sm:w-28"
 														loading="lazy"
 														referrerPolicy="no-referrer"
 													/>
@@ -883,14 +888,14 @@ export function IndexPage() {
 											) : null}
 											<div className="min-w-0 flex-1 space-y-1">
 												<div className="flex items-start justify-between gap-2">
-													<div className="flex min-w-0 items-center gap-2">
+													<div className="flex min-w-0 flex-wrap items-center gap-2">
 														{p.is_pinned ? (
 															<span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300">
 																<Pin className="h-3.5 w-3.5" />
 																<span>Pinned</span>
 															</span>
 														) : null}
-														<a className="truncate text-lg font-semibold hover:underline" href={`/post?id=${p.id}`}>
+														<a className="min-w-0 break-words text-lg font-semibold hover:underline" href={`/post?id=${p.id}`}>
 															{p.title}
 														</a>
 													</div>
@@ -1044,7 +1049,7 @@ export function IndexPage() {
 				</div>
 
 				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-					<div className="flex items-center gap-2">
+					<div className="flex flex-wrap items-center gap-2">
 						<Button
 							variant="outline"
 							size="sm"

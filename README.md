@@ -174,6 +174,7 @@ Main changes from the original:
 - **Source mirror** - The public source mirror leaves out private project notes (`CLAUDE.md`); all source code is still published (2026-11-03)
 - **Older iPads** - Works on iOS/Safari 12 and newer: code compiled for Safari 12 with polyfills for missing built-ins, fallbacks for newer browser features (security nonces, post previews, image viewer), dark mode written so older Safari applies it, and margin-based spacing where flexbox gap isn't supported (2026-11-18)
 - **Old iOS notice** - Pages show a "needs iOS 12 or newer" message on iOS 11 and older instead of a blank page (2026-11-18)
+- **Phone layout** - Pages fit narrow phone screens (no sideways overflow, so iPhones no longer shrink the text), with a compact header, wrapping toolbar and 16px form fields (2026-11-18)
 
 For the complete, dated list of changes, see the [commit history](https://github.com/johnwmgo/cforum-source/commits/main). Every commit after `1f80425` is a modification.
 
