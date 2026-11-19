@@ -34,10 +34,25 @@ export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> &
 		asChild?: boolean;
 	};
 
-export function Button({ className, variant, size, asChild, ...props }: ButtonProps) {
+// When a button mixes icons and bare text, wrap the text in spans. Older iPads have no
+// flexbox gap, and the .no-flex-gap fallback (globals.css) can only put margins between
+// elements, not between an icon and a text node.
+function wrapBareText(children: React.ReactNode) {
+	const items = React.Children.toArray(children);
+	const hasElement = items.some((c) => React.isValidElement(c));
+	const hasText = items.some((c) => (typeof c === 'string' && c.trim() !== '') || typeof c === 'number');
+	if (!hasElement || !hasText) return children;
+	return items.map((c, i) =>
+		(typeof c === 'string' && c.trim() !== '') || typeof c === 'number' ? <span key={`t${i}`}>{c}</span> : c
+	);
+}
+
+export function Button({ className, variant, size, asChild, children, ...props }: ButtonProps) {
 	const Comp = asChild ? Slot : 'button';
 	return (
-		<Comp className={cn(buttonVariants({ variant, size, className }))} {...props} />
+		<Comp className={cn(buttonVariants({ variant, size, className }))} {...props}>
+			{asChild ? children : wrapBareText(children)}
+		</Comp>
 	);
 }
 

@@ -45,13 +45,23 @@ export type Comment = {
 
 const API_BASE = '/api';
 
+// crypto.randomUUID needs Safari 15.4+; older iPads only have getRandomValues
+function randomNonce(): string {
+	if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+	const bytes = crypto.getRandomValues(new Uint8Array(16));
+	bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
+	bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant
+	const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+	return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
 export function getSecurityHeaders(method: string, contentType: string | null = 'application/json') {
 	const headers: Record<string, string> = {};
 	const token = getToken();
 	if (token) headers.Authorization = `Bearer ${token}`;
 	if (['POST', 'PUT', 'DELETE'].includes(method.toUpperCase())) {
 		headers['X-Timestamp'] = Math.floor(Date.now() / 1000).toString();
-		headers['X-Nonce'] = crypto.randomUUID();
+		headers['X-Nonce'] = randomNonce();
 	}
 	if (contentType) headers['Content-Type'] = contentType;
 	return headers;

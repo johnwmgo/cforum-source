@@ -440,7 +440,7 @@ export function PostPage() {
 															onClick={togglePin}
 														>
 															<Pin className="h-4 w-4" />
-															{post.is_pinned ? 'Unpin' : 'Pin'}
+															<span>{post.is_pinned ? 'Unpin' : 'Pin'}</span>
 														</button>
 													) : null}
 													<button
@@ -452,7 +452,7 @@ export function PostPage() {
 														}}
 													>
 														<Trash2 className="h-4 w-4" />
-														Delete
+														<span>Delete</span>
 													</button>
 													{user.role === 'admin' ? (
 														<>

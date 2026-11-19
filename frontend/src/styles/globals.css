@@ -311,3 +311,68 @@
 .prose > :last-child {
 	margin-bottom: 0;
 }
+
+/*
+ * Flexbox gap fallback for Safari < 14.1 (older iPads), which ignores `gap` on flex
+ * containers. bootstrap.tsx adds .no-flex-gap to <html> only in those browsers, so
+ * modern browsers keep using gap and never see these rules. The same spacing comes
+ * from margins between items instead, as on felting.com:
+ *   rows:     left margin on every item after the first
+ *   columns:  top margin on every item after the first (flex-col that turns into a
+ *             row at the sm breakpoint switches to left margins there)
+ *   wrapping: right and bottom margins on every item, none on the right of the last
+ * Bare text next to an icon isn't an element and gets no margin, so components wrap
+ * such text in a <span> (Button does this automatically).
+ * Only the gap sizes the app uses are covered: 1 = .25rem, 2 = .5rem, 3 = .75rem, 4 = 1rem.
+ */
+.no-flex-gap .flex.gap-1:not(.flex-col):not(.flex-wrap) > * + *,
+.no-flex-gap .inline-flex.gap-1:not(.flex-col):not(.flex-wrap) > * + * {
+	margin-left: 0.25rem;
+}
+.no-flex-gap .flex.gap-2:not(.flex-col):not(.flex-wrap) > * + *,
+.no-flex-gap .inline-flex.gap-2:not(.flex-col):not(.flex-wrap) > * + * {
+	margin-left: 0.5rem;
+}
+.no-flex-gap .flex.gap-3:not(.flex-col):not(.flex-wrap) > * + *,
+.no-flex-gap .inline-flex.gap-3:not(.flex-col):not(.flex-wrap) > * + * {
+	margin-left: 0.75rem;
+}
+.no-flex-gap .flex.gap-4:not(.flex-col):not(.flex-wrap) > * + *,
+.no-flex-gap .inline-flex.gap-4:not(.flex-col):not(.flex-wrap) > * + * {
+	margin-left: 1rem;
+}
+
+.no-flex-gap .flex-col.gap-2 > * + * {
+	margin-top: 0.5rem;
+}
+.no-flex-gap .flex-col.gap-3 > * + * {
+	margin-top: 0.75rem;
+}
+@media (min-width: 640px) {
+	.no-flex-gap .flex-col.sm\:flex-row.gap-3 > * + * {
+		margin-top: 0;
+		margin-left: 0.75rem;
+	}
+}
+
+.no-flex-gap .flex-wrap.gap-2 > * {
+	margin-right: 0.5rem;
+	margin-bottom: 0.5rem;
+}
+.no-flex-gap .flex-wrap.gap-x-2 > * {
+	margin-right: 0.5rem;
+}
+.no-flex-gap .flex-wrap.gap-y-1 > * {
+	margin-bottom: 0.25rem;
+}
+.no-flex-gap .flex-wrap.gap-2 > :last-child,
+.no-flex-gap .flex-wrap.gap-x-2 > :last-child {
+	margin-right: 0;
+}
+/* Cancel the last line's bottom margins so wrapping rows take no extra height */
+.no-flex-gap .flex-wrap.gap-2 {
+	margin-bottom: -0.5rem;
+}
+.no-flex-gap .flex-wrap.gap-y-1 {
+	margin-bottom: -0.25rem;
+}

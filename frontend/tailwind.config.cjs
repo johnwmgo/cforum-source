@@ -1,5 +1,6 @@
 module.exports = {
-	darkMode: ['class'],
+	// '.dark &' instead of 'class': Tailwind 3.4's 'class' mode emits :is(.dark *), which Safari < 14 drops
+	darkMode: ['variant', '.dark &'],
 	content: ['./frontend/pages/**/*.html', './frontend/src/**/*.{ts,tsx}'],
 	theme: {
 		extend: {

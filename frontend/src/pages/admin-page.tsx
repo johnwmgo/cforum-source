@@ -284,7 +284,7 @@ export function AdminPage() {
 										checked={systemSettings.turnstile_enabled}
 										onChange={(e) => setSystemSettings((s) => ({ ...s, turnstile_enabled: e.target.checked }))}
 									/>
-									Enable Cloudflare Turnstile
+									<span>Enable Cloudflare Turnstile</span>
 								</label>
 								<Separator />
 								<div className="grid gap-3 sm:grid-cols-2">
@@ -295,7 +295,7 @@ export function AdminPage() {
 											checked={systemSettings.notify_on_user_delete}
 											onChange={(e) => setSystemSettings((s) => ({ ...s, notify_on_user_delete: e.target.checked }))}
 										/>
-										Notify user when account is deleted
+										<span>Notify user when account is deleted</span>
 									</label>
 									<label className="flex items-center gap-2 text-sm">
 										<input
@@ -304,7 +304,7 @@ export function AdminPage() {
 											checked={systemSettings.notify_on_username_change}
 											onChange={(e) => setSystemSettings((s) => ({ ...s, notify_on_username_change: e.target.checked }))}
 										/>
-										Notify user when username is changed
+										<span>Notify user when username is changed</span>
 									</label>
 									<label className="flex items-center gap-2 text-sm">
 										<input
@@ -313,7 +313,7 @@ export function AdminPage() {
 											checked={systemSettings.notify_on_avatar_change}
 											onChange={(e) => setSystemSettings((s) => ({ ...s, notify_on_avatar_change: e.target.checked }))}
 										/>
-										Notify user when avatar is changed
+										<span>Notify user when avatar is changed</span>
 									</label>
 									<label className="flex items-center gap-2 text-sm">
 										<input
@@ -322,7 +322,7 @@ export function AdminPage() {
 											checked={systemSettings.notify_on_manual_verify}
 											onChange={(e) => setSystemSettings((s) => ({ ...s, notify_on_manual_verify: e.target.checked }))}
 										/>
-										Notify user when manually verified
+										<span>Notify user when manually verified</span>
 									</label>
 								</div>
 								<Button onClick={saveSettings} disabled={loading}>

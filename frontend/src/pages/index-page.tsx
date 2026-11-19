@@ -34,6 +34,15 @@ function PostExcerpt({ content }: { content: string }) {
 		if (!el || expanded) return;
 		const measure = () => setOverflowing(el.scrollHeight > el.clientHeight + 1);
 		measure();
+		// ResizeObserver needs Safari 13.1+; older iPads re-measure on window resize and image loads instead
+		if (typeof ResizeObserver === 'undefined') {
+			window.addEventListener('resize', measure);
+			el.addEventListener('load', measure, true);
+			return () => {
+				window.removeEventListener('resize', measure);
+				el.removeEventListener('load', measure, true);
+			};
+		}
 		const observer = new ResizeObserver(measure);
 		observer.observe(el);
 		return () => observer.disconnect();
@@ -65,11 +74,11 @@ function PostExcerpt({ content }: { content: string }) {
 				>
 					{expanded ? (
 						<>
-							Show less <ChevronUp className="h-4 w-4" />
+							<span>Show less</span> <ChevronUp className="h-4 w-4" />
 						</>
 					) : (
 						<>
-							Show more <ChevronDown className="h-4 w-4" />
+							<span>Show more</span> <ChevronDown className="h-4 w-4" />
 						</>
 					)}
 				</button>
@@ -878,7 +887,7 @@ export function IndexPage() {
 														{p.is_pinned ? (
 															<span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-300">
 																<Pin className="h-3.5 w-3.5" />
-																Pinned
+																<span>Pinned</span>
 															</span>
 														) : null}
 														<a className="truncate text-lg font-semibold hover:underline" href={`/post?id=${p.id}`}>
@@ -919,7 +928,7 @@ export function IndexPage() {
 																		onClick={() => void adminTogglePin(p)}
 																	>
 																		<Pin className="h-4 w-4" />
-																		{p.is_pinned ? 'Unpin' : 'Pin'}
+																		<span>{p.is_pinned ? 'Unpin' : 'Pin'}</span>
 																	</button>
 																	<button
 																		type="button"
@@ -928,7 +937,7 @@ export function IndexPage() {
 																		onClick={() => void adminDeletePost(p)}
 																	>
 																		<Trash2 className="h-4 w-4" />
-																		Delete
+																		<span>Delete</span>
 																	</button>
 																	<div className="my-1 h-px bg-border" />
 																	<div className="px-2 py-1 text-xs font-medium text-muted-foreground">Move to category</div>
@@ -998,7 +1007,7 @@ export function IndexPage() {
 														title={user ? (p.liked ? 'Unlike' : 'Like') : 'Log in to like'}
 													>
 														<Heart className="h-4 w-4 text-rose-600" fill={p.liked ? 'currentColor' : 'none'} />
-														{p.like_count || 0}
+														<span>{p.like_count || 0}</span>
 														<span className="sr-only">{p.liked ? 'Unlike' : 'Like'}</span>
 													</button>
 													<a
@@ -1007,12 +1016,12 @@ export function IndexPage() {
 														title="Comments"
 													>
 														<MessageCircle className="h-4 w-4 text-sky-600" />
-														{p.comment_count || 0}
+														<span>{p.comment_count || 0}</span>
 														<span className="sr-only">Comments</span>
 													</a>
 													<span className="inline-flex items-center gap-1" title="Views">
 														<Eye className="h-4 w-4 text-emerald-600" />
-														{p.view_count || 0}
+														<span>{p.view_count || 0}</span>
 														<span className="sr-only">Views</span>
 													</span>
 													{user && (isAdmin || user.id === p.author_id) ? (
@@ -1021,7 +1030,7 @@ export function IndexPage() {
 															className="inline-flex items-center gap-1 text-[#34457a] hover:underline dark:text-[#a9b8f2]"
 														>
 															<Pencil className="h-4 w-4" />
-															Edit
+															<span>Edit</span>
 														</a>
 													) : null}
 												</div>

@@ -242,7 +242,7 @@ export function SettingsPage() {
 								checked={emailNotifications}
 								onChange={(e) => setEmailNotifications(e.target.checked)}
 							/>
-							Receive email notifications (comments only)
+							<span>Receive email notifications (comments only)</span>
 						</label>
 
 						<Button onClick={saveProfile} disabled={loading}>

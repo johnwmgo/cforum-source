@@ -73,6 +73,9 @@ export function highlightCodeBlocks(root: ParentNode | null) {
 export function attachFancybox(root: HTMLElement | null) {
 	if (!root) return () => {};
 	if (!root.querySelector('a[data-fancybox]')) return () => {};
+	// Fancybox needs ResizeObserver and other newer APIs (Safari 13.1+). Without it, image
+	// links stay plain links that open the image, rather than a viewer that breaks on tap.
+	if (typeof ResizeObserver === 'undefined' || typeof IntersectionObserver === 'undefined') return () => {};
 	let cancelled = false;
 	void import('@fancyapps/ui').then(({ Fancybox }) => {
 		if (cancelled) return;

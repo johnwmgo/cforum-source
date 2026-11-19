@@ -1,7 +1,8 @@
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
-	darkMode: ['class'],
+	// '.dark &' instead of 'class': Tailwind 3.4's 'class' mode emits :is(.dark *), which Safari < 14 drops
+	darkMode: ['variant', '.dark &'],
 	content: ['./pages/**/*.html', './src/**/*.{ts,tsx}'],
 	theme: {
 		extend: {
